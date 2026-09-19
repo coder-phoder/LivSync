@@ -42,6 +42,7 @@ function MessageThread({
   listing,
   onBack,
   variant = 'standard',
+  tone = 'user',
 }) {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -51,6 +52,7 @@ function MessageThread({
   const endRef = useRef(null)
   const draftRef = useRef(null)
   const isInbox = variant === 'inbox'
+  const isLandlord = tone === 'landlord'
 
   useEffect(() => {
     let isCurrent = true
@@ -125,32 +127,32 @@ function MessageThread({
   }
 
   const headerClass = isInbox
-    ? 'flex items-center gap-3 border-b border-ink/12 bg-card/70 px-4 py-4 sm:px-6'
+    ? `flex items-center gap-3 border-b px-4 py-4 sm:px-6 ${isLandlord ? 'border-landlord-ink/12 bg-landlord-card/75' : 'border-ink/12 bg-card/70'}`
     : 'border-b border-slate-200 px-5 py-3'
   const threadClass = isInbox
-    ? 'flex-1 overflow-y-auto bg-[linear-gradient(to_bottom,rgba(21,19,15,.025)_1px,transparent_1px)] bg-[size:100%_34px] px-4 py-6 sm:px-7'
+    ? `flex-1 overflow-y-auto bg-[size:100%_34px] px-4 py-6 sm:px-7 ${isLandlord ? 'bg-[linear-gradient(to_bottom,rgba(16,53,83,.03)_1px,transparent_1px)]' : 'bg-[linear-gradient(to_bottom,rgba(21,19,15,.025)_1px,transparent_1px)]'}`
     : 'flex-1 space-y-3 overflow-y-auto px-5 py-4'
   const composerClass = isInbox
-    ? 'border-t border-ink/12 bg-card/85 px-4 py-4 sm:px-6 sm:py-5'
+    ? `border-t px-4 py-4 sm:px-6 sm:py-5 ${isLandlord ? 'border-landlord-ink/12 bg-landlord-card/88' : 'border-ink/12 bg-card/85'}`
     : 'flex items-end gap-3 border-t border-slate-200 px-5 py-4'
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className={headerClass}>
         {isInbox && onBack && (
-          <button type="button" onClick={onBack} className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:bg-ink/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink lg:hidden" aria-label="Back to conversations">
+          <button type="button" onClick={onBack} className={`grid size-9 shrink-0 cursor-pointer place-items-center rounded-full border transition-colors lg:hidden ${isLandlord ? 'border-landlord-ink/15 text-landlord-ink hover:bg-landlord-navy/6 focus-visible:outline-landlord-navy' : 'border-ink/15 text-ink hover:bg-ink/6 focus-visible:outline-ink'} focus-visible:outline-2 focus-visible:outline-offset-2`} aria-label="Back to conversations">
             <ArrowLeft aria-hidden className="size-4" />
           </button>
         )}
         {isInbox ? (
           <>
-            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-forest text-[15px] font-semibold text-lime">{initialOf(title)}</span>
+            <span className={`grid size-10 shrink-0 place-items-center rounded-2xl text-[15px] font-semibold ${isLandlord ? 'bg-landlord-navy text-landlord-cyan' : 'bg-forest text-lime'}`}>{initialOf(title)}</span>
             <span className="min-w-0 flex-1">
               <span className="flex flex-wrap items-center gap-2">
                 <span className="truncate font-display text-[17px] font-bold tracking-[-.025em]">{title}</span>
                 <VerifiedBadge verified={verified} label="Verified" size="xs" />
               </span>
-              <span className="mt-0.5 block truncate text-[12.5px] text-muted">{subtitle || 'Property conversation'}</span>
+              <span className={`mt-0.5 block truncate text-[12.5px] ${isLandlord ? 'text-landlord-muted' : 'text-muted'}`}>{subtitle || 'Property conversation'}</span>
             </span>
             {listing?.id && (
               <Link to={`/listings/${listing.id}`} className="hidden shrink-0 items-center gap-1.5 rounded-full border border-ink/15 bg-card px-3.5 py-2 text-[12.5px] font-medium text-ink transition-colors hover:border-ink/45 hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink sm:inline-flex">
@@ -172,20 +174,20 @@ function MessageThread({
       <div className={threadClass}>
         {isLoading && (isInbox ? (
           <div aria-busy="true" className="mx-auto grid max-w-2xl gap-3">
-            <span className="h-14 w-3/5 animate-pulse rounded-2xl bg-ink/7" />
-            <span className="ml-auto h-20 w-1/2 animate-pulse rounded-2xl bg-forest/12" />
-            <span className="h-12 w-2/5 animate-pulse rounded-2xl bg-ink/7" />
+            <span className={`h-14 w-3/5 animate-pulse rounded-2xl ${isLandlord ? 'bg-landlord-ink/7' : 'bg-ink/7'}`} />
+            <span className={`ml-auto h-20 w-1/2 animate-pulse rounded-2xl ${isLandlord ? 'bg-landlord-navy/12' : 'bg-forest/12'}`} />
+            <span className={`h-12 w-2/5 animate-pulse rounded-2xl ${isLandlord ? 'bg-landlord-ink/7' : 'bg-ink/7'}`} />
           </div>
         ) : <p className="text-sm text-slate-600">Loading messages…</p>)}
 
         {!isLoading && !messages.length && (isInbox ? (
           <div className="mx-auto grid max-w-md place-items-center py-14 text-center">
-            <span className="grid size-12 place-items-center rounded-2xl bg-lime text-ink"><SendHorizontal aria-hidden className="size-5" /></span>
+            <span className={`grid size-12 place-items-center rounded-2xl ${isLandlord ? 'bg-landlord-cyan text-landlord-ink' : 'bg-lime text-ink'}`}><SendHorizontal aria-hidden className="size-5" /></span>
             <h2 className="mt-5 font-display text-2xl font-bold tracking-[-.04em]">Start a useful conversation.</h2>
-            <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-muted">A clear first question gets you closer to a viewing. Try one of these, or write your own.</p>
+            <p className={`mt-2 max-w-sm text-[14px] leading-relaxed ${isLandlord ? 'text-landlord-muted' : 'text-muted'}`}>{isLandlord ? 'Answer practical questions quickly and keep every next step tied to the right home.' : 'A clear first question gets you closer to a viewing. Try one of these, or write your own.'}</p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {['Is this still available?', 'Could I schedule a viewing?', 'What is the move-in date?'].map((starter) => (
-                <button key={starter} type="button" onClick={() => setStarter(starter)} className="cursor-pointer rounded-full border border-ink/15 bg-card px-3.5 py-2 text-[12.5px] text-ink-soft transition-colors hover:border-ink/40 hover:bg-ink/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">{starter}</button>
+                <button key={starter} type="button" onClick={() => setStarter(starter)} className={`cursor-pointer rounded-full border px-3.5 py-2 text-[12.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${isLandlord ? 'border-landlord-ink/15 bg-landlord-card text-landlord-ink-soft hover:border-landlord-navy/40 hover:bg-landlord-navy/5 focus-visible:outline-landlord-navy' : 'border-ink/15 bg-card text-ink-soft hover:border-ink/40 hover:bg-ink/5 focus-visible:outline-ink'}`}>{starter}</button>
               ))}
             </div>
           </div>
@@ -197,14 +199,14 @@ function MessageThread({
               const showDay = isInbox && (!index || dayKey(message.createdAt) !== dayKey(messages[index - 1].createdAt))
               return (
                 <div key={message.id}>
-                  {showDay && <p className="mb-4 text-center font-mono text-[10px] uppercase tracking-[.14em] text-faint"><span className="bg-card px-3">{dayLabel(message.createdAt)}</span></p>}
+                  {showDay && <p className={`mb-4 text-center font-mono text-[10px] uppercase tracking-[.14em] ${isLandlord ? 'text-landlord-faint' : 'text-faint'}`}><span className={isLandlord ? 'bg-landlord-card px-3' : 'bg-card px-3'}>{dayLabel(message.createdAt)}</span></p>}
                   <div className={`flex ${message.mine ? 'justify-end' : 'justify-start'}`}>
                     <div className={isInbox
-                      ? `max-w-[86%] rounded-[18px] px-4 py-3 sm:max-w-[76%] ${message.mine ? 'rounded-br-md bg-forest text-[#F7F5EF]' : 'rounded-bl-md border border-ink/10 bg-card text-ink shadow-[0_8px_20px_-18px_rgba(21,19,15,.65)]'}`
+                      ? `max-w-[86%] rounded-[18px] px-4 py-3 sm:max-w-[76%] ${message.mine ? (isLandlord ? 'rounded-br-md bg-landlord-navy text-landlord-card' : 'rounded-br-md bg-forest text-[#F7F5EF]') : (isLandlord ? 'rounded-bl-md border border-landlord-ink/10 bg-landlord-card text-landlord-ink shadow-[0_8px_20px_-18px_rgba(16,53,83,.65)]' : 'rounded-bl-md border border-ink/10 bg-card text-ink shadow-[0_8px_20px_-18px_rgba(21,19,15,.65)]')}`
                       : `max-w-[80%] rounded-xl px-4 py-2 text-sm ${message.mine ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-800'}`}
                     >
                       <p className={`whitespace-pre-wrap ${isInbox ? 'text-[14px] leading-relaxed' : ''}`}>{message.text}</p>
-                      <p className={`mt-1.5 flex items-center gap-1 text-[10.5px] ${isInbox ? (message.mine ? 'text-[#F7F5EF]/60' : 'text-faint') : (message.mine ? 'text-slate-300' : 'text-slate-500')}`}>
+                      <p className={`mt-1.5 flex items-center gap-1 text-[10.5px] ${isInbox ? (message.mine ? (isLandlord ? 'text-landlord-card/60' : 'text-[#F7F5EF]/60') : (isLandlord ? 'text-landlord-faint' : 'text-faint')) : (message.mine ? 'text-slate-300' : 'text-slate-500')}`}>
                         {formatTime(message.createdAt)}
                         {isInbox && message.mine && <CheckCheck aria-hidden className="size-3" />}
                       </p>
@@ -221,13 +223,13 @@ function MessageThread({
       <form onSubmit={handleSend} className={composerClass}>
         {isInbox ? (
           <div className="mx-auto max-w-2xl">
-            <div className="flex items-end gap-3 rounded-2xl border border-ink/15 bg-card p-2.5 shadow-[0_14px_30px_-24px_rgba(21,19,15,.65)] focus-within:border-ink/45">
-              <textarea ref={draftRef} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={onComposerKeyDown} rows={2} maxLength={2000} placeholder="Write a message…" className="min-h-12 flex-1 resize-none bg-transparent px-2 py-1.5 text-[14px] leading-relaxed text-ink outline-none placeholder:text-faint" />
-              <button type="submit" disabled={isSending || !draft.trim()} className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl bg-ink text-[#F7F5EF] transition-all hover:-translate-y-px hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-45" aria-label={isSending ? 'Sending message' : 'Send message'} title={isSending ? 'Sending message' : 'Send message'}>
+            <div className={`flex items-end gap-3 rounded-2xl border p-2.5 focus-within:border-2 ${isLandlord ? 'border-landlord-ink/15 bg-landlord-card shadow-[0_14px_30px_-24px_rgba(16,53,83,.65)] focus-within:border-landlord-navy' : 'border-ink/15 bg-card shadow-[0_14px_30px_-24px_rgba(21,19,15,.65)] focus-within:border-ink/45'}`}>
+              <textarea ref={draftRef} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={onComposerKeyDown} rows={2} maxLength={2000} placeholder="Write a message…" className={`min-h-12 flex-1 resize-none bg-transparent px-2 py-1.5 text-[14px] leading-relaxed outline-none ${isLandlord ? 'text-landlord-ink placeholder:text-landlord-faint' : 'text-ink placeholder:text-faint'}`} />
+              <button type="submit" disabled={isSending || !draft.trim()} className={`grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl transition-all hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${isLandlord ? 'bg-landlord-navy text-landlord-card hover:bg-landlord-blue focus-visible:outline-landlord-navy' : 'bg-ink text-[#F7F5EF] hover:bg-clay focus-visible:outline-ink'}`} aria-label={isSending ? 'Sending message' : 'Send message'} title={isSending ? 'Sending message' : 'Send message'}>
                 <SendHorizontal aria-hidden className="size-[17px]" />
               </button>
             </div>
-            <p className="mt-2 text-center text-[11px] text-faint">Press Ctrl + Enter to send · Keep messages focused on the home.</p>
+            <p className={`mt-2 text-center text-[11px] ${isLandlord ? 'text-landlord-faint' : 'text-faint'}`}>Press Ctrl + Enter to send · Keep messages focused on the home.</p>
           </div>
         ) : (
           <>
