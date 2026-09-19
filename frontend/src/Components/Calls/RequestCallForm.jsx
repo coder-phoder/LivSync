@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
+const LABEL = 'block font-mono text-[10.5px] uppercase tracking-[.14em] text-faint'
+const FIELD = 'mt-1.5 w-full rounded-xl border border-ink/20 bg-card px-3 py-2.5 font-sans text-[14px] tracking-normal text-ink normal-case outline-none transition-colors focus:border-ink disabled:opacity-55'
+
 function RequestCallForm({ listingId }) {
   const [isOpen, setIsOpen] = useState(false)
   const [form, setForm] = useState({ mode: 'video', note: '' })
@@ -35,10 +38,10 @@ function RequestCallForm({ listingId }) {
 
   if (isSent) {
     return (
-      <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-        <p className="font-semibold">Call requested</p>
-        <p className="mt-1">The landlord will pick a date and time. You can join from your calls once they do.</p>
-        <Link to="/calls" className="mt-2 inline-block font-semibold underline">See your calls</Link>
+      <div className="mt-3 rounded-2xl border border-forest/25 bg-forest/8 p-4">
+        <p className="font-display text-[15px] font-semibold tracking-[-.02em] text-forest">Call requested</p>
+        <p className="mt-1.5 text-[13.5px] leading-snug text-muted">The landlord will pick a date and time. You can join from your calls once they do.</p>
+        <Link to="/calls" className="mt-2.5 inline-block text-[13.5px] font-medium underline underline-offset-2 transition-colors hover:text-clay">See your calls</Link>
       </div>
     )
   }
@@ -48,7 +51,7 @@ function RequestCallForm({ listingId }) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="mt-3 w-full rounded-md border border-slate-900 px-4 py-2 font-semibold text-slate-900 hover:bg-slate-100"
+        className="mt-2.5 w-full cursor-pointer rounded-full border border-ink/20 px-5 py-3 text-[14.5px] font-medium transition-colors hover:border-ink hover:bg-ink hover:text-[#F7F5EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
         Request a call
       </button>
@@ -56,23 +59,18 @@ function RequestCallForm({ listingId }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-3 border-t border-slate-200 pt-4">
-      <p className="font-semibold">Request a call</p>
-      <p className="text-xs text-slate-500">Ask for an appointment and the landlord will set a date and time of up to 30 minutes.</p>
+    <form onSubmit={handleSubmit} className="mt-4 border-t border-ink/12 pt-4">
+      <p className="font-display text-[15.5px] font-semibold tracking-[-.02em]">Request a call</p>
+      <p className="mt-1 text-[12.5px] leading-snug text-muted">Ask for an appointment and the landlord will set a date and time of up to 30 minutes.</p>
 
-      <label className="block text-xs font-medium text-slate-700" htmlFor="mode">
+      <label className={`mt-3.5 ${LABEL}`} htmlFor="mode">
         Call type
-        <select
-          id="mode"
-          value={form.mode}
-          onChange={(event) => setForm({ ...form, mode: event.target.value })}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-700"
-        >
+        <select id="mode" value={form.mode} onChange={(event) => setForm({ ...form, mode: event.target.value })} className={`${FIELD} cursor-pointer`}>
           <option value="video">Video call</option>
           <option value="voice">Voice call</option>
         </select>
       </label>
-      <label className="block text-xs font-medium text-slate-700" htmlFor="note">
+      <label className={`mt-3 ${LABEL}`} htmlFor="note">
         Note (optional)
         <textarea
           id="note"
@@ -81,19 +79,16 @@ function RequestCallForm({ listingId }) {
           value={form.note}
           onChange={(event) => setForm({ ...form, note: event.target.value })}
           placeholder="What would you like to discuss, and when are you free?"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-700"
+          className={FIELD}
         />
       </label>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full rounded-md bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+
+      {error && <p role="alert" className="mt-3 text-[13px] text-clay">{error}</p>}
+
+      <button type="submit" disabled={isSubmitting} className="mt-4 w-full cursor-pointer rounded-full bg-ink px-5 py-3 text-[14.5px] font-medium text-[#F7F5EF] transition-colors hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-55">
         {isSubmitting ? 'Sending…' : 'Send request'}
       </button>
-
-      {error && <p className="text-xs text-red-600">{error}</p>}
-      <button type="button" onClick={() => setIsOpen(false)} className="text-xs font-medium text-slate-600 underline">Cancel</button>
+      <button type="button" onClick={() => setIsOpen(false)} className="mt-2.5 w-full cursor-pointer text-[13px] font-medium text-muted underline underline-offset-2 transition-colors hover:text-clay">Cancel</button>
     </form>
   )
 }

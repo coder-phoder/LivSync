@@ -71,7 +71,7 @@ function ListingMap({ listingId, title, address }) {
     })
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
-    new mapboxgl.Marker({ color: '#0f172a' })
+    new mapboxgl.Marker({ color: '#D9482B' })
       .setLngLat([longitude, latitude])
       .setPopup(new mapboxgl.Popup({ offset: 24 }).setText(title))
       .addTo(map)
@@ -84,18 +84,18 @@ function ListingMap({ listingId, title, address }) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold">Location</h2>
-      <p className="mt-2 text-sm text-slate-600">{address}</p>
-      <div className="relative mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-        {isLoading && <div className="flex h-80 items-center justify-center text-sm text-slate-600">Loading map…</div>}
+      <h2 className="font-mono text-[10.5px] uppercase tracking-[.16em] text-faint">Location</h2>
+      <p className="mt-4 text-[14.5px] text-muted">{address}</p>
+      <div className="relative mt-5 overflow-hidden rounded-[22px] border border-ink/12 bg-ink/4">
+        {isLoading && <div className="grid h-80 place-items-center text-[13.5px] text-muted">Loading map…</div>}
         {requestError && (
-          <div className="flex h-80 flex-col items-center justify-center gap-3 p-5 text-center text-sm text-red-700">
+          <div className="flex h-80 flex-col items-center justify-center gap-3 p-5 text-center text-[13.5px] text-clay">
             <p>{requestError}</p>
-            <button type="button" onClick={() => setRetryKey((key) => key + 1)} className="font-semibold underline">Try again</button>
+            <button type="button" onClick={() => setRetryKey((key) => key + 1)} className="cursor-pointer font-medium text-ink underline underline-offset-2 hover:text-clay">Try again</button>
           </div>
         )}
         {mapData && <div ref={containerRef} className="h-80 w-full" aria-label={`Map showing ${title}`} />}
-        {renderError && <p className="absolute inset-x-4 bottom-4 rounded-md bg-white/95 px-3 py-2 text-center text-sm text-red-700 shadow-sm">{renderError}</p>}
+        {renderError && <p className="absolute inset-x-4 bottom-4 rounded-xl border border-clay/25 bg-card/95 px-3 py-2 text-center text-[13px] text-clay">{renderError}</p>}
       </div>
     </section>
   )

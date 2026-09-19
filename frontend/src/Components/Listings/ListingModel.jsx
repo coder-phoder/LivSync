@@ -38,13 +38,13 @@ function ListingModel({ listingId, title }) {
   }, [isViewerLoaded])
 
   return (
-    <section className="mt-8">
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-xl font-semibold">3D tour</h2>
-        {isModelLoaded && <p className="text-sm text-slate-500">Drag to rotate · scroll to zoom</p>}
+    <section>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 className="font-mono text-[10.5px] uppercase tracking-[.16em] text-faint">3D tour</h2>
+        {isModelLoaded && <p className="text-[12.5px] text-faint">Drag to rotate · scroll to zoom</p>}
       </div>
 
-      <div className="relative mt-4 h-96 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+      <div className="relative mt-5 h-96 overflow-hidden rounded-[22px] border border-ink/12 bg-ink/4">
         {isViewerLoaded && !error && (
           <model-viewer
             ref={viewerRef}
@@ -54,14 +54,14 @@ function ListingModel({ listingId, title }) {
             auto-rotate=""
             touch-action="pan-y"
             shadow-intensity="1"
-            style={{ width: '100%', height: '100%', backgroundColor: '#f1f5f9' }}
+            style={{ width: '100%', height: '100%', backgroundColor: '#EFEBE1' }}
           />
         )}
         {!error && !isModelLoaded && (
-          <p className="absolute inset-0 flex items-center justify-center text-sm text-slate-500">Loading 3D model…</p>
+          <p className="absolute inset-0 grid place-items-center text-[13.5px] text-muted">Loading 3D model…</p>
         )}
         {error && (
-          <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-red-600">{error}</p>
+          <p className="absolute inset-0 grid place-items-center px-6 text-center text-[13.5px] text-clay">{error}</p>
         )}
       </div>
     </section>
