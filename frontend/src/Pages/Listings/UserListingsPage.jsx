@@ -1,10 +1,11 @@
 import axios from 'axios'
-import { BellPlus, Bookmark, Search, SlidersHorizontal, X } from 'lucide-react'
+import { BellPlus, Bookmark, Scale, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ListingCard from '../../Components/Listings/ListingCard'
 import ListingFilters from '../../Components/Listings/ListingFilters'
 import UserNavbar from '../../Components/User/UserNavbar'
+import { useComparison } from '../../Context/ComparisonContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const SHELL = 'mx-auto w-full max-w-[1240px] px-5 sm:px-10 lg:px-16'
@@ -64,6 +65,7 @@ function headline({ total, filters, chipCount }) {
 }
 
 function UserListingsPage() {
+  const { listingIds: comparisonIds, maxListings, toggleListing } = useComparison()
   const [listings, setListings] = useState([])
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS)
@@ -316,6 +318,8 @@ function UserListingsPage() {
                 {savedListingIds.size > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-lime px-1.5 py-0.5 text-[10px] font-semibold text-ink tabular-nums">{savedListingIds.size}</span>}
               </Link>
 
+              {comparisonIds.length > 0 && <Link to="/compare" className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-[14px] font-medium text-[#F7F5EF] transition-colors hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"><Scale aria-hidden className="size-4" />Compare <span className="rounded-full bg-lime px-1.5 py-0.5 text-[10px] font-semibold text-ink tabular-nums">{comparisonIds.length}</span></Link>}
+
               <button
                 type="button"
                 onClick={createAlert}
@@ -418,6 +422,9 @@ function UserListingsPage() {
                       saved={savedListingIds.has(listing._id)}
                       onSaveToggle={() => toggleSavedListing(listing._id)}
                       isSaving={savingListingId === listing._id}
+                      compared={comparisonIds.includes(listing._id)}
+                      compareDisabled={!comparisonIds.includes(listing._id) && comparisonIds.length >= maxListings}
+                      onCompareToggle={() => toggleListing(listing._id)}
                     />
                   ))}
                 </div>

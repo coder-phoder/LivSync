@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import VerifiedBadge from '../Common/VerifiedBadge'
 import SaveListingButton from './SaveListingButton'
+import CompareListingButton from './CompareListingButton'
 
 const rentFormatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 })
 const dateFormatter = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' })
@@ -22,7 +23,7 @@ function availability(value) {
   return date.getTime() <= Date.now() ? 'Available now' : `From ${dateFormatter.format(date)}`
 }
 
-function ListingCard({ listing, to, footer, saved = false, onSaveToggle, isSaving = false }) {
+function ListingCard({ listing, to, footer, saved = false, onSaveToggle, isSaving = false, compared = false, compareDisabled = false, onCompareToggle }) {
   const monthlyRent = listing.totalMonthlyRent
     ?? (Number(listing.rent?.coldRent || 0) + Number(listing.rent?.utilities || 0) + Number(listing.rent?.otherMonthlyCharges || 0))
   const photo = listing.photos?.[0]
@@ -50,6 +51,7 @@ function ListingCard({ listing, to, footer, saved = false, onSaveToggle, isSavin
         {onSaveToggle && (
           <SaveListingButton variant="icon" saved={saved} onToggle={onSaveToggle} isSaving={isSaving} className="absolute right-3 top-3 z-10" />
         )}
+        {onCompareToggle && <CompareListingButton selected={compared} disabled={compareDisabled} onToggle={onCompareToggle} className="absolute bottom-3 left-3 z-10" />}
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">

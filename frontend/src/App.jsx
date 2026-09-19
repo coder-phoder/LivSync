@@ -19,6 +19,7 @@ import UserLoginPage from './Pages/User/UserLoginPage'
 import UserProfilePage from './Pages/User/UserProfilePage'
 import UserRegisterPage from './Pages/User/UserRegisterPage'
 import SavedListingsPage from './Pages/User/SavedListingsPage'
+import ComparisonPage from './Pages/User/ComparisonPage'
 
 // The Agora SDK is a megabyte of WebRTC; it only loads once someone opens a call room.
 const CallRoomPage = lazy(() => import('./Pages/Calls/CallRoomPage'))
@@ -93,6 +94,14 @@ function App() {
         element={(
           <RoleRoute role="user">
             <SavedListingsPage />
+          </RoleRoute>
+        )}
+      />
+      <Route
+        path="/compare"
+        element={(
+          <RoleRoute role="user">
+            <ComparisonPage />
           </RoleRoute>
         )}
       />
