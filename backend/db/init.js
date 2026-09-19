@@ -24,6 +24,15 @@ const MEDIA_FOLDER_URLS = [
     'https://drive.google.com/drive/folders/1zx9aWuIJcy8su4PnvK1R-7ZJ2LPoRgw2?usp=sharing',
 ];
 
+const MODEL_URLS = [
+    'https://drive.google.com/file/d/16_qPSl42Jfw-o4MS5GpMncByPXTzCdtR/view?usp=drive_link',
+    'https://drive.google.com/file/d/1LyxOVF5_y4BycF26_TBYGNz_exm9vpR0/view?usp=drive_link',
+    'https://drive.google.com/file/d/1_RrogdfVe8zp_lJ9SPMDs-UDPqXprHuH/view?usp=drive_link',
+    'https://drive.google.com/file/d/13EM_Ajl6Pjv465xB5wDIc6wLQHPr8j2Z/view?usp=drive_link',
+    'https://drive.google.com/file/d/10cvNzwL58ea5cxhDzd8WPII-1XtF1dr7/view?usp=drive_link',
+    'https://drive.google.com/file/d/1__a3IFBQsJ4zs3SOLtKTC2PUfCF1iT2x/view?usp=drive_link',
+];
+
 const days = (count) => new Date(Date.now() + count * 86400000);
 const date = (value) => new Date(`${value}T00:00:00.000Z`);
 const verifiedAt = new Date();
@@ -157,6 +166,7 @@ async function seedDatabase() {
             Listing.insertMany(LISTINGS.map((listing, index) => ({
                 ...listing,
                 ...listingMedia[index],
+                modelUrl: MODEL_URLS[index],
                 landlord: landlord._id,
                 mediaFolderUrl: MEDIA_FOLDER_URLS[index],
                 verificationStatus: 'verified',
