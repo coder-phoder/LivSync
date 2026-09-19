@@ -40,7 +40,7 @@ function createFormData(listing) {
   }
 }
 
-function ListingForm({ listing, onSave, onCancel, isSubmitting, error }) {
+function ListingForm({ listing, onSave, onCancel, isSubmitting, error, inModal = false }) {
   const [form, setForm] = useState(() => createFormData(listing))
 
   const handleChange = (event) => {
@@ -113,9 +113,10 @@ function ListingForm({ listing, onSave, onCancel, isSubmitting, error }) {
   }
 
   return (
-    <form className="mt-6 space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
+    <form className={inModal ? 'space-y-5 p-5 sm:p-6' : 'mt-6 space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm'} onSubmit={handleSubmit}>
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold">{listing ? 'Edit listing' : 'New listing'}</h2>
+        {!inModal && <h2 className="text-xl font-semibold">{listing ? 'Edit listing' : 'New listing'}</h2>}
+        {inModal && <span className="text-sm text-slate-500">Review each section before publishing.</span>}
         {onCancel && <button type="button" onClick={onCancel} disabled={isSubmitting} className="text-sm font-medium text-slate-600 hover:text-slate-900">Cancel</button>}
       </div>
 
