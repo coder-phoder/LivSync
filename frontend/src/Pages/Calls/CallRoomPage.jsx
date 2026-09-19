@@ -1,9 +1,27 @@
 import AgoraRTC from 'agora-rtc-sdk-ng'
 import axios from 'axios'
+import { Mic, MicOff, PhoneOff, Video, VideoOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
+const TICK_INTERVAL = 30 * 1000
+
+const DOCK = 'grid size-13 cursor-pointer place-items-center rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime sm:size-14'
+
+function Control({ icon: Icon, label, off = false, danger = false, onClick }) {
+  const tone = danger
+    ? 'border-clay bg-clay text-[#F7F5EF] hover:bg-clay/85'
+    : off
+      ? 'border-clay/50 bg-clay/15 text-clay hover:bg-clay/25'
+      : 'border-[#F4F1EA]/20 bg-[#F4F1EA]/8 text-[#F4F1EA] hover:bg-[#F4F1EA]/16'
+
+  return (
+    <button type="button" onClick={onClick} aria-label={label} aria-pressed={danger ? undefined : off} title={label} className={`${DOCK} ${tone}`}>
+      <Icon aria-hidden className="size-5.5" />
+    </button>
+  )
+}
 
 function CallRoomPage() {
   const { callId } = useParams()
@@ -19,6 +37,7 @@ function CallRoomPage() {
   const [isMicOn, setIsMicOn] = useState(true)
   const [isCameraOn, setIsCameraOn] = useState(true)
   const [hasRemote, setHasRemote] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     let isCurrent = true
@@ -109,6 +128,13 @@ function CallRoomPage() {
     }
   }, [callId])
 
+  // The room closes with the window the landlord set, so the time left is worth showing.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), TICK_INTERVAL)
+
+    return () => clearInterval(timer)
+  }, [])
+
   const toggleTrack = async (index, isOn, setIsOn) => {
     const track = sessionRef.current?.tracks[index]
 
@@ -119,67 +145,82 @@ function CallRoomPage() {
   }
 
   const isVideoCall = call?.mode === 'video'
+  const name = call?.counterpart?.name || 'Call'
+  const minutesLeft = call?.endAt ? Math.max(0, Math.round((Date.parse(call.endAt) - now) / 60000)) : null
+
+  if (error) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-forest-deep px-5 text-[#F4F1EA]">
+        <div className="w-full max-w-md rounded-[26px] border border-clay/40 bg-clay/10 p-7 text-center">
+          <h1 className="font-display text-[26px] font-bold tracking-[-.035em]">This call could not start</h1>
+          <p className="mt-2.5 text-[14.5px] leading-relaxed text-[#F4F1EA]/75">{error}</p>
+          <button type="button" onClick={() => navigate('/calls')} className="mt-6 cursor-pointer rounded-full bg-lime px-5 py-3 text-[14.5px] font-semibold text-forest-deep transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime">
+            Back to calls
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900 text-white">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-5 py-4">
-        <div>
-          <p className="text-sm font-medium text-slate-400">{isVideoCall ? 'Video call' : 'Voice call'}</p>
-          <h1 className="text-lg font-semibold">{call?.counterpart?.name || 'Call'}</h1>
+    <div className="flex h-dvh flex-col overflow-hidden bg-forest-deep text-[#F4F1EA]">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-4 sm:px-7">
+        <div className="min-w-0">
+          <p className="font-mono text-[10.5px] uppercase tracking-[.16em] text-forest-mute">{isVideoCall ? 'Video call' : 'Voice call'}</p>
+          <h1 className="mt-1.5 truncate font-display text-[19px] font-bold tracking-[-.03em] sm:text-[22px]">{name}</h1>
         </div>
-        <p className="text-sm text-slate-400">{call?.listing?.title || ''}</p>
+        <div className="flex items-center gap-3 text-[13px] text-[#F4F1EA]/65">
+          {call?.listing?.title && <span className="hidden max-w-[32ch] truncate sm:inline">{call.listing.title}</span>}
+          {minutesLeft !== null && (
+            <span className={`rounded-full border px-3 py-1 font-mono text-[11px] tracking-[.08em] tabular-nums ${minutesLeft <= 2 ? 'border-clay/60 bg-clay/15 text-clay' : 'border-[#F4F1EA]/20'}`}>
+              {minutesLeft} MIN LEFT
+            </span>
+          )}
+        </div>
       </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-5">
-        {error && (
-          <div className="max-w-md rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-center text-sm text-red-200">
-            <p>{error}</p>
-            <button type="button" onClick={() => navigate('/calls')} className="mt-3 rounded-md bg-white px-4 py-2 font-semibold text-slate-900">
-              Back to calls
-            </button>
-          </div>
-        )}
+      <main className="min-h-0 flex-1 px-4 sm:px-7">
+        <div className="relative mx-auto h-full w-full max-w-6xl overflow-hidden rounded-[26px] border border-[#F4F1EA]/12 bg-[#0A1A16]">
+          <div ref={remoteRef} className="absolute inset-0" />
 
-        {!error && (
-          <>
-            <div className="relative w-full max-w-3xl">
-              <div ref={remoteRef} className="aspect-video w-full overflow-hidden rounded-xl bg-slate-800" />
-              {!hasRemote && (
-                <p className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-slate-400">{status}</p>
-              )}
-              {isVideoCall && (
-                <div ref={localRef} className="absolute bottom-3 right-3 h-28 w-40 overflow-hidden rounded-lg border border-slate-700 bg-slate-950" />
+          {/* A voice call has no remote video to fill this, and neither does a video call before it connects. */}
+          {!hasRemote && (
+            <div className="absolute inset-0 grid place-items-center px-6 text-center">
+              <div>
+                <span aria-hidden className="relative mx-auto grid size-24 place-items-center rounded-full bg-forest font-display text-[34px] font-bold text-lime sm:size-28">
+                  <span className="absolute inset-0 rounded-full bg-lime/25 animate-pulse-ring" />
+                  <span className="relative">{name.trim()[0]?.toUpperCase() || '?'}</span>
+                </span>
+                <p className="mt-6 font-display text-[19px] font-semibold tracking-[-.025em]">{name}</p>
+                <p className="mt-1.5 text-[14px] text-[#F4F1EA]/60">{status}</p>
+              </div>
+            </div>
+          )}
+
+          {isVideoCall && (
+            <div className="absolute right-4 bottom-4 h-28 w-40 overflow-hidden rounded-2xl border border-[#F4F1EA]/20 bg-[#08120F] shadow-[0_20px_40px_-24px_rgba(0,0,0,.9)] sm:h-32 sm:w-48">
+              <div ref={localRef} className="absolute inset-0" />
+              {!isCameraOn && (
+                <p className="absolute inset-0 grid place-items-center font-mono text-[10px] uppercase tracking-[.14em] text-[#F4F1EA]/55">Camera off</p>
               )}
             </div>
+          )}
 
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => toggleTrack(0, isMicOn, setIsMicOn)}
-                className="rounded-md border border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-800"
-              >
-                {isMicOn ? 'Mute' : 'Unmute'}
-              </button>
-              {isVideoCall && (
-                <button
-                  type="button"
-                  onClick={() => toggleTrack(1, isCameraOn, setIsCameraOn)}
-                  className="rounded-md border border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-800"
-                >
-                  {isCameraOn ? 'Stop video' : 'Start video'}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => navigate('/calls')}
-                className="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold hover:bg-red-500"
-              >
-                Leave call
-              </button>
-            </div>
-          </>
-        )}
+          {!isMicOn && (
+            <p className="absolute top-4 left-4 flex items-center gap-2 rounded-full border border-clay/50 bg-clay/15 px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[.14em] text-clay">
+              <MicOff aria-hidden className="size-3.5" /> Muted
+            </p>
+          )}
+        </div>
       </main>
+
+      <div className="flex shrink-0 items-center justify-center gap-3 px-5 pt-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
+        <Control icon={isMicOn ? Mic : MicOff} off={!isMicOn} label={isMicOn ? 'Mute microphone' : 'Unmute microphone'} onClick={() => toggleTrack(0, isMicOn, setIsMicOn)} />
+        {isVideoCall && (
+          <Control icon={isCameraOn ? Video : VideoOff} off={!isCameraOn} label={isCameraOn ? 'Stop video' : 'Start video'} onClick={() => toggleTrack(1, isCameraOn, setIsCameraOn)} />
+        )}
+        <Control icon={PhoneOff} danger label="Leave call" onClick={() => navigate('/calls')} />
+      </div>
     </div>
   )
 }
