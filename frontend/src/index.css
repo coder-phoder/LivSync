@@ -15,6 +15,20 @@
   --color-clay: #D9482B;
   --color-sand: #C8B98F;
 
+  /* Landlords operate a portfolio rather than a search. Keep those surfaces in a
+     calm blue system so that their workspace is unmistakable beside the tenant UI. */
+  --color-landlord-paper: #EEF4F8;
+  --color-landlord-card: #FCFEFF;
+  --color-landlord-ink: #10253D;
+  --color-landlord-ink-soft: #294761;
+  --color-landlord-muted: #597187;
+  --color-landlord-faint: #71879B;
+  --color-landlord-navy: #103553;
+  --color-landlord-blue: #2877C9;
+  --color-landlord-cyan: #66DDE3;
+  --color-landlord-amber: #D88A3D;
+  --color-landlord-alert: #B95042;
+
   --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
