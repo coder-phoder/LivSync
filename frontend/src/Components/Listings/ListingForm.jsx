@@ -28,10 +28,10 @@ function createFormData(listing) {
     otherMonthlyCharges: listing?.rent?.otherMonthlyCharges ?? 0,
     securityDeposit: listing?.securityDeposit ?? 0,
     brokerageFee: listing?.brokerageFee ?? 0,
-    photoUrls: listing?.photos?.join('\n') || '',
     floorPlanUrl: listing?.floorPlanUrl || '',
     virtualTourUrl: listing?.virtualTourUrl || '',
     modelUrl: listing?.modelUrl || '',
+    mediaFolderUrl: listing?.mediaFolderUrl || '',
     amenities: listing?.amenities?.join(', ') || '',
     documentRequirements: (listing?.documentRequirements || []).map((requirement) => requirement.name).filter(Boolean),
     customDocument: '',
@@ -101,10 +101,10 @@ function ListingForm({ listing, onSave, onCancel, isSubmitting, error }) {
       },
       securityDeposit: Number(form.securityDeposit || 0),
       brokerageFee: Number(form.brokerageFee || 0),
-      photos: form.photoUrls.split('\n').map((url) => url.trim()).filter(Boolean),
       ...(form.floorPlanUrl.trim() && { floorPlanUrl: form.floorPlanUrl.trim() }),
       ...(form.virtualTourUrl.trim() && { virtualTourUrl: form.virtualTourUrl.trim() }),
       ...(form.modelUrl.trim() && { modelUrl: form.modelUrl.trim() }),
+      ...(form.mediaFolderUrl.trim() && { mediaFolderUrl: form.mediaFolderUrl.trim() }),
       amenities: form.amenities.split(',').map((amenity) => amenity.trim()).filter(Boolean),
       documentRequirements: form.documentRequirements.map((name) => ({ name })),
       availableFrom: form.availableFrom,
@@ -219,12 +219,12 @@ function ListingForm({ listing, onSave, onCancel, isSubmitting, error }) {
         )}
         <p className="mt-2 text-xs text-slate-500">{form.documentRequirements.length}/12 documents requested</p>
       </section>
-      <label className="block text-sm font-medium text-slate-700" htmlFor="photoUrls">Photo URLs <span className="font-normal text-slate-500">(one per line)</span><textarea id="photoUrls" name="photoUrls" value={form.photoUrls} onChange={handleChange} rows="3" disabled={isSubmitting} className="mt-1.5 w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 outline-none focus:border-slate-700 disabled:bg-slate-50" /></label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-medium text-slate-700" htmlFor="floorPlanUrl">Floor plan URL <span className="font-normal text-slate-500">(optional)</span><input id="floorPlanUrl" name="floorPlanUrl" type="url" value={form.floorPlanUrl} onChange={handleChange} disabled={isSubmitting} className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2.5 outline-none focus:border-slate-700 disabled:bg-slate-50" /></label>
         <label className="block text-sm font-medium text-slate-700" htmlFor="virtualTourUrl">Virtual tour URL <span className="font-normal text-slate-500">(optional)</span><input id="virtualTourUrl" name="virtualTourUrl" type="url" value={form.virtualTourUrl} onChange={handleChange} disabled={isSubmitting} className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2.5 outline-none focus:border-slate-700 disabled:bg-slate-50" /></label>
       </div>
       <label className="block text-sm font-medium text-slate-700" htmlFor="modelUrl">3D model <span className="font-normal text-slate-500">(optional Google Drive link to a .glb file, shared as “anyone with the link”)</span><input id="modelUrl" name="modelUrl" type="url" placeholder="https://drive.google.com/file/d/FILE_ID/view" value={form.modelUrl} onChange={handleChange} disabled={isSubmitting} className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2.5 outline-none focus:border-slate-700 disabled:bg-slate-50" /></label>
+      <label className="block text-sm font-medium text-slate-700" htmlFor="mediaFolderUrl">Listing photos &amp; videos <span className="font-normal text-slate-500">(Google Drive folder shared as “anyone with the link” — every image and video in it becomes this listing&apos;s gallery. Save again after adding files to pick them up.)</span><input id="mediaFolderUrl" name="mediaFolderUrl" type="url" placeholder="https://drive.google.com/drive/folders/FOLDER_ID" value={form.mediaFolderUrl} onChange={handleChange} disabled={isSubmitting} className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2.5 outline-none focus:border-slate-700 disabled:bg-slate-50" /></label>
       <label className="block text-sm font-medium text-slate-700" htmlFor="status">Listing status<select id="status" name="status" value={form.status} onChange={handleChange} disabled={isSubmitting} className="mt-1.5 w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 outline-none focus:border-slate-700 disabled:bg-slate-50">{LISTING_STATUSES.map((status) => <option key={status} value={status} className="capitalize">{status}</option>)}</select></label>
 
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}

@@ -6,6 +6,8 @@ const LISTING_STATUSES = ['published', 'rented', 'archived'];
 const URL_OPTIONS = { protocols: ['http', 'https'], require_protocol: true };
 // Both shapes Drive hands out: /file/d/<id>/view and ...?id=<id>
 const DRIVE_FILE_ID = /^https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?[^\s]*id=)([\w-]{10,})/;
+// Both shapes a shared folder gets: /drive/folders/<id> and /drive/u/0/folders/<id>, with or without ?usp=
+const DRIVE_FOLDER_ID = /^https:\/\/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([\w-]{10,})/;
 
 const validateListingCreation = [
     body('title').trim().isLength({ min: 5, max: 120 }).withMessage('Title must be 5 to 120 characters'),
@@ -31,6 +33,7 @@ const validateListingCreation = [
     body('floorPlanUrl').optional().isURL(URL_OPTIONS).withMessage('Floor plan must be a valid URL'),
     body('virtualTourUrl').optional().isURL(URL_OPTIONS).withMessage('Virtual tour must be a valid URL'),
     body('modelUrl').optional().custom(isDriveLink),
+    body('mediaFolderUrl').optional().custom(isDriveFolderLink),
     body('amenities').optional().isArray({ max: 30 }).withMessage('Amenities must contain at most 30 items'),
     body('amenities.*').optional().trim().isLength({ min: 1, max: 60 }).withMessage('Amenities must be 1 to 60 characters'),
     validateDocumentRequirements(),
@@ -64,6 +67,7 @@ const validateListingUpdate = [
     body('floorPlanUrl').optional().isURL(URL_OPTIONS).withMessage('Floor plan must be a valid URL'),
     body('virtualTourUrl').optional().isURL(URL_OPTIONS).withMessage('Virtual tour must be a valid URL'),
     body('modelUrl').optional().custom(isDriveLink),
+    body('mediaFolderUrl').optional().custom(isDriveFolderLink),
     body('amenities').optional().isArray({ max: 30 }).withMessage('Amenities must contain at most 30 items'),
     body('amenities.*').optional().trim().isLength({ min: 1, max: 60 }).withMessage('Amenities must be 1 to 60 characters'),
     validateDocumentRequirements(),
@@ -106,6 +110,14 @@ const validateListingQuery = [
 function isDriveLink(value) {
     if (!DRIVE_FILE_ID.test(String(value))) {
         throw new Error('The 3D model must be a Google Drive share link, like https://drive.google.com/file/d/FILE_ID/view');
+    }
+
+    return true;
+}
+
+function isDriveFolderLink(value) {
+    if (!DRIVE_FOLDER_ID.test(String(value))) {
+        throw new Error('The media folder must be a Google Drive folder link, like https://drive.google.com/drive/folders/FOLDER_ID');
     }
 
     return true;

@@ -35,9 +35,7 @@ function Cost({ label, value, strong = false }) {
 }
 
 // The photograph is the product, so it gets the full width of the screen and the title sits in it.
-function Hero({ listing, price, isSoldOut, saveButton }) {
-  const photo = listing.photos?.[0]
-
+function Hero({ listing, photo, price, isSoldOut, saveButton }) {
   return (
     <header className="relative h-[62vh] max-h-[720px] min-h-[430px] w-full overflow-hidden bg-forest-deep">
       {photo
@@ -77,24 +75,22 @@ function Hero({ listing, price, isSoldOut, saveButton }) {
 }
 
 // Native scroll-snap does what a carousel library would, at the cost of nothing.
-function PhotoStrip({ photos, title }) {
-  if (!photos || photos.length < 2) return null
+function MediaStrip({ items }) {
+  if (!items.length) return null
+
+  const videos = items.filter((item) => item.kind === 'video').length
+  const frame = 'h-[280px] w-[80vw] shrink-0 snap-center rounded-[24px] object-cover sm:h-[440px] sm:w-[620px]'
 
   return (
-    <section className="mt-20" aria-label="Photos">
+    <section className="mt-20" aria-label="Photos and videos">
       <div className={`${SHELL} flex flex-wrap items-baseline justify-between gap-3`}>
-        <h2 className={EYEBROW}>Photos</h2>
-        <p className="font-mono text-[10.5px] uppercase tracking-[.14em] text-faint">{photos.length} in total · swipe</p>
+        <h2 className={EYEBROW}>{videos ? 'Photos & video' : 'Photos'}</h2>
+        <p className="font-mono text-[10.5px] uppercase tracking-[.14em] text-faint">{items.length} in total · swipe</p>
       </div>
       <div className="mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-3 sm:px-10 lg:px-16 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
-        {photos.slice(1).map((photo, index) => (
-          <img
-            key={photo}
-            src={photo}
-            alt={`${title} ${index + 2}`}
-            className="h-[280px] w-[80vw] shrink-0 snap-center rounded-[24px] object-cover sm:h-[440px] sm:w-[620px]"
-          />
-        ))}
+        {items.map((item) => (item.kind === 'video'
+          ? <iframe key={item.key} src={item.src} title={item.alt} allow="autoplay; fullscreen" className={`${frame} border-0 bg-[#0A1A16]`} />
+          : <img key={item.key} src={item.src} alt={item.alt} loading="lazy" className={frame} />))}
       </div>
     </section>
   )
@@ -193,6 +189,12 @@ function ListingDetailPage() {
     ?? (Number(listing.rent?.coldRent || 0) + Number(listing.rent?.utilities || 0) + Number(listing.rent?.otherMonthlyCharges || 0)))
   const moveInTotal = listing && monthlyRent + (listing.securityDeposit || 0) + (listing.brokerageFee || 0)
 
+  const heroSrc = listing?.photos?.[0] || ''
+  const gallery = [
+    ...(listing?.photos || []).slice(1).map((src, index) => ({ key: src, kind: 'image', src, alt: `${listing.title} ${index + 2}` })),
+    ...(listing?.videos || []).map((video) => ({ key: video.id, kind: 'video', src: video.src, alt: `${listing.title} video` })),
+  ]
+
   const specs = listing ? [
     ['Bedrooms', listing.bedrooms],
     ['Bathrooms', listing.bathrooms],
@@ -232,6 +234,7 @@ function ListingDetailPage() {
         <main className="pb-28">
           <Hero
             listing={listing}
+            photo={heroSrc}
             price={formatAmount(monthlyRent)}
             isSoldOut={isSoldOut}
             saveButton={!isSoldOut && <SaveListingButton saved={isSaved} onToggle={toggleSavedListing} isSaving={isSavingListing} variant="icon" />}
@@ -338,7 +341,7 @@ function ListingDetailPage() {
             </aside>
           </div>
 
-          <PhotoStrip photos={listing.photos} title={listing.title} />
+          <MediaStrip items={gallery} />
 
           {listing.modelUrl && (
             <div className={`${SHELL} mt-20`}>

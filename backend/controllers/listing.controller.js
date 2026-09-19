@@ -22,6 +22,7 @@ const EDITABLE_FIELDS = [
     'floorPlanUrl',
     'virtualTourUrl',
     'modelUrl',
+    'mediaFolderUrl',
     'amenities',
     'documentRequirements',
     'availableFrom',
@@ -29,7 +30,82 @@ const EDITABLE_FIELDS = [
 ];
 const LOCATION_FIELDS = ['address', 'city', 'state', 'postalCode'];
 const DRIVE_FILE_ID = /(?:\/d\/|[?&]id=)([\w-]{10,})/;
-const RENT_FIELDS = ['coldRent', 'utilities', 'otherMonthlyCharges'];
+const MAX_FOLDER_PHOTOS = 24;
+const DRIVE_FOLDER_ID = /folders\/([\w-]{10,})/;
+// Drive serves these two straight to a browser for any file shared "anyone with the link":
+// an <img> for a still, and a player in an <iframe> for a clip.
+const driveImage = (id, width) => `https://drive.google.com/thumbnail?id=${id}&sz=w${width}`;
+const drivePlayer = (id) => `https://drive.google.com/file/d/${id}/preview`;
+const driveFolderId = (url) => DRIVE_FOLDER_ID.exec(url || '')?.[1] || '';
+
+// Whatever else the landlord keeps in the folder — a PDF, a spreadsheet, a subfolder — is not media.
+function toMedia(files = []) {
+    return files
+        .filter((file) => /^(image|video)\//.test(file.mimeType || ''))
+        .map((file) => {
+            const isVideo = file.mimeType.startsWith('video/');
+
+            return {
+                id: file.id,
+                name: file.name,
+                kind: isVideo ? 'video' : 'image',
+                src: isVideo ? drivePlayer(file.id) : driveImage(file.id, 1600),
+                poster: driveImage(file.id, 800),
+            };
+        });
+}
+
+// The folder is read once, when the landlord saves, and its contents become the listing's own
+// photos. Every card, thumbnail and gallery downstream then works off `photos` as it always has,
+// with no Drive call in the way of a page load.
+async function resolveFolderMedia(folderUrl) {
+    const folderId = driveFolderId(folderUrl);
+
+    if (!folderId) throw new Error('The media folder must be a Google Drive folder link');
+    if (!process.env.GOOGLE_DRIVE_API_KEY) throw new Error('Google Drive is not configured on the server');
+
+    let files;
+
+    try {
+        const drive = await axios.get('https://www.googleapis.com/drive/v3/files', {
+            params: {
+                // folderId comes from the regex above, so it cannot carry a quote out of the link.
+                q: `'${folderId}' in parents and trashed = false`,
+                key: process.env.GOOGLE_DRIVE_API_KEY,
+                fields: 'files(id,name,mimeType)',
+                orderBy: 'name',
+                pageSize: 100,
+            },
+            timeout: 15000,
+        });
+
+        files = drive.data?.files || [];
+
+        // A folder that is not shared publicly lists as empty rather than failing, so an empty
+        // answer is checked against the folder itself before it is taken at face value.
+        if (!files.length) {
+            await axios.get(`https://www.googleapis.com/drive/v3/files/${folderId}`, {
+                params: { key: process.env.GOOGLE_DRIVE_API_KEY, fields: 'id' },
+                timeout: 15000,
+            });
+        }
+    } catch (error) {
+        console.error('Drive folder read failed:', error.message);
+
+        throw new Error([403, 404].includes(error.response?.status)
+            ? 'That Google Drive folder is not shared publicly. Set it to "anyone with the link".'
+            : 'Unable to read that Google Drive folder');
+    }
+
+    const media = toMedia(files);
+
+    if (!media.length) throw new Error('That Google Drive folder has no images or videos in it');
+
+    return {
+        photos: media.filter((item) => item.kind === 'image').map((item) => item.src).slice(0, MAX_FOLDER_PHOTOS),
+        videos: media.filter((item) => item.kind === 'video').map(({ id, src, poster }) => ({ id, src, poster })),
+    };
+}
 
 function hasOwnProperty(object, key) {
     return Object.prototype.hasOwnProperty.call(object, key);
@@ -78,8 +154,12 @@ async function createListing(req, res) {
             });
         }
 
+        const data = getListingData(req.body);
+
+        if (data.mediaFolderUrl) Object.assign(data, await resolveFolderMedia(data.mediaFolderUrl));
+
         const listing = await Listing.create({
-            ...getListingData(req.body),
+            ...data,
             landlord: req.landlordId,
         });
         await listing.populate('landlord', LANDLORD_FIELDS);
@@ -97,9 +177,9 @@ async function createListing(req, res) {
             data: { listing },
         });
     } catch (error) {
-        return res.status(500).json({
+        return res.status(error.message.includes('Drive') || error.message.includes('folder') ? 400 : 500).json({
             success: false,
-            message: 'Unable to create listing',
+            message: error.message.includes('folder') ? error.message : 'Unable to create listing',
             data: {},
         });
     }
@@ -335,7 +415,14 @@ async function updateListing(req, res) {
         }
 
         const wasPublished = listing.status === 'published';
+
         applyListingUpdates(listing, req.body);
+
+        // Re-reading the folder on every save is also how a landlord refreshes it after adding files.
+        if (req.body.mediaFolderUrl) {
+            Object.assign(listing, await resolveFolderMedia(req.body.mediaFolderUrl));
+        }
+
         await listing.save();
         await listing.populate('landlord', LANDLORD_FIELDS);
 
@@ -353,9 +440,9 @@ async function updateListing(req, res) {
             data: { listing },
         });
     } catch (error) {
-        return res.status(500).json({
+        return res.status(error.message.includes('Drive') || error.message.includes('folder') ? 400 : 500).json({
             success: false,
-            message: 'Unable to update listing',
+            message: error.message.includes('folder') ? error.message : 'Unable to update listing',
             data: {},
         });
     }
@@ -482,6 +569,9 @@ module.exports = {
     getListingById,
     getListingMap,
     getListingModel,
+    driveFolderId,
+    toMedia,
+    resolveFolderMedia,
     getOwnListings,
     updateListing,
     deleteListing,

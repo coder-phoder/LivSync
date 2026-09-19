@@ -123,6 +123,11 @@ const listingSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        // Clips found in the media folder: a Drive player URL plus a still to show before it plays.
+        videos: {
+            type: [{ id: String, src: String, poster: String }],
+            default: [],
+        },
         floorPlanUrl: {
             type: String,
             trim: true,
@@ -133,6 +138,12 @@ const listingSchema = new mongoose.Schema(
         },
         // Google Drive share link to a .glb file; served to tenants through /listings/:id/model.
         modelUrl: {
+            type: String,
+            trim: true,
+        },
+        // Google Drive folder share link. Saving the listing reads the folder and copies its
+        // images into `photos` and its clips into `videos`, so nothing reads Drive on a page load.
+        mediaFolderUrl: {
             type: String,
             trim: true,
         },
