@@ -4,10 +4,10 @@ import { useAuth } from './Context/AuthContext'
 import BuddyPage from './Pages/Buddy/BuddyPage'
 import CallsPage from './Pages/Calls/CallsPage'
 import LandingPage from './Pages/Common/LandingPage'
-import LoginPage from './Pages/Common/LoginPage'
-import RegisterPage from './Pages/Common/RegisterPage'
 import VerifyEmailPage from './Pages/Common/VerifyEmailPage'
 import LandlordHomePage from './Pages/Landlord/LandlordHomePage'
+import LandlordLoginPage from './Pages/Landlord/LandlordLoginPage'
+import LandlordRegisterPage from './Pages/Landlord/LandlordRegisterPage'
 import LandlordSignaturePage from './Pages/Landlord/LandlordSignaturePage'
 import LandlordListingsPage from './Pages/Listings/LandlordListingsPage'
 import ListingDetailPage from './Pages/Listings/ListingDetailPage'
@@ -15,7 +15,9 @@ import MessagesPage from './Pages/Messages/MessagesPage'
 import RentalsPage from './Pages/Rentals/RentalsPage'
 import UserListingsPage from './Pages/Listings/UserListingsPage'
 import UserHomePage from './Pages/User/UserHomePage'
+import UserLoginPage from './Pages/User/UserLoginPage'
 import UserProfilePage from './Pages/User/UserProfilePage'
+import UserRegisterPage from './Pages/User/UserRegisterPage'
 import SavedListingsPage from './Pages/User/SavedListingsPage'
 
 // The Agora SDK is a megabyte of WebRTC; it only loads once someone opens a call room.
@@ -23,16 +25,21 @@ const CallRoomPage = lazy(() => import('./Pages/Calls/CallRoomPage'))
 
 function RoleRoute({ role, children }) {
   const { role: currentRole } = useAuth()
+  const loginPath = role === 'landlord' ? '/landlord/login' : '/user/login'
 
-  return [].concat(role).includes(currentRole) ? children : <Navigate to="/login" replace />
+  return [].concat(role).includes(currentRole) ? children : <Navigate to={loginPath} replace />
 }
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/user/login" element={<UserLoginPage />} />
+      <Route path="/user/register" element={<UserRegisterPage />} />
+      <Route path="/landlord/login" element={<LandlordLoginPage />} />
+      <Route path="/landlord/register" element={<LandlordRegisterPage />} />
+      <Route path="/login" element={<Navigate to="/user/login" replace />} />
+      <Route path="/register" element={<Navigate to="/user/register" replace />} />
       <Route
         path="/verify-email"
         element={(

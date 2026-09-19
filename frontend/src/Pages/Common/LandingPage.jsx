@@ -35,8 +35,9 @@ function LandingPage() {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/login" className="rounded-full px-3.5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:bg-ink/6 hover:text-ink">Log in</Link>
-            <Link to="/register" className="rounded-full bg-ink px-4.5 py-2.5 text-sm font-medium text-[#F7F5EF] transition-all hover:-translate-y-px hover:bg-clay">Create account</Link>
+            <Link to="/user/login" className="rounded-full px-3.5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:bg-ink/6 hover:text-ink">Tenant log in</Link>
+            <Link to="/landlord/login" className="hidden rounded-full px-3.5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:bg-ink/6 hover:text-ink sm:inline-flex">Landlord log in</Link>
+            <Link to="/user/register" className="rounded-full bg-ink px-4.5 py-2.5 text-sm font-medium text-[#F7F5EF] transition-all hover:-translate-y-px hover:bg-clay">Find a home</Link>
           </div>
         </nav>
       </header>
@@ -56,12 +57,12 @@ function LandingPage() {
               actually live together — all before the first message is sent.
             </p>
             <div className="mt-8.5 flex flex-wrap gap-3">
-              <Link to="/register" className="inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3.5 text-[15px] font-medium text-[#F7F5EF] shadow-[0_14px_30px_-18px_rgba(21,19,15,.9)] transition-all hover:-translate-y-0.5 hover:bg-clay">
+              <Link to="/user/register" className="inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3.5 text-[15px] font-medium text-[#F7F5EF] shadow-[0_14px_30px_-18px_rgba(21,19,15,.9)] transition-all hover:-translate-y-0.5 hover:bg-clay">
                 Find a room <span className="font-mono text-[13px]">&rarr;</span>
               </Link>
-              <a href="#landlords" className="inline-flex items-center rounded-full border border-ink/20 px-6 py-3.5 text-[15px] font-medium transition-all hover:-translate-y-0.5 hover:bg-ink/5">
+              <Link to="/landlord/register" className="inline-flex items-center rounded-full border border-ink/20 px-6 py-3.5 text-[15px] font-medium transition-all hover:-translate-y-0.5 hover:bg-ink/5">
                 List a property
-              </a>
+              </Link>
             </div>
             <dl className="mt-11 grid gap-5 border-t border-ink/15 pt-5.5 sm:grid-cols-3">
               {[
@@ -181,7 +182,7 @@ function LandingPage() {
                 Publishing the full cost filters out everyone who was never going to sign. The tenants who message you have
                 already seen the real number.
               </p>
-              <Link to="/register" className="mt-7 inline-flex items-center gap-2.5 rounded-full bg-ink px-5.5 py-3.5 text-[15px] font-medium text-[#F7F5EF] transition-all hover:-translate-y-0.5 hover:bg-clay">
+              <Link to="/landlord/register" className="mt-7 inline-flex items-center gap-2.5 rounded-full bg-ink px-5.5 py-3.5 text-[15px] font-medium text-[#F7F5EF] transition-all hover:-translate-y-0.5 hover:bg-clay">
                 Post a listing <span className="font-mono text-[13px]">&rarr;</span>
               </Link>
             </div>
@@ -206,10 +207,10 @@ function LandingPage() {
               come as standard.
             </p></Reveal>
             <Reveal className="mt-9 flex flex-wrap justify-center gap-3">
-              <Link to="/register" className="inline-flex items-center gap-2.5 rounded-full bg-lime px-7 py-4 text-[15.5px] font-semibold text-forest transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_36px_-20px_rgba(207,240,74,.8)]">
-                Create an account <span className="font-mono text-[13px]">&rarr;</span>
+              <Link to="/user/register" className="inline-flex items-center gap-2.5 rounded-full bg-lime px-7 py-4 text-[15.5px] font-semibold text-forest transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_36px_-20px_rgba(207,240,74,.8)]">
+                Find a home <span className="font-mono text-[13px]">&rarr;</span>
               </Link>
-              <Link to="/login" className="inline-flex items-center rounded-full border border-paper/30 px-7 py-4 text-[15.5px] font-medium transition-all hover:-translate-y-0.5 hover:bg-paper/10">Log in</Link>
+              <Link to="/landlord/register" className="inline-flex items-center rounded-full border border-paper/30 px-7 py-4 text-[15.5px] font-medium transition-all hover:-translate-y-0.5 hover:bg-paper/10">List a property</Link>
             </Reveal>
           </div>
         </section>

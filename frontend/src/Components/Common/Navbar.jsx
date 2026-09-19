@@ -13,9 +13,9 @@ function Navbar() {
         </Link>
         <div className="flex items-center gap-5 text-sm font-medium">
           <NavLink to="/" end className={linkClass}>Home</NavLink>
-          <NavLink to="/login" className={linkClass}>Log in</NavLink>
-          <NavLink to="/register" className="rounded-md bg-slate-900 px-3 py-2 text-white hover:bg-slate-700">
-            Register
+          <NavLink to="/user/login" className={linkClass}>Tenant log in</NavLink>
+          <NavLink to="/user/register" className="rounded-md bg-slate-900 px-3 py-2 text-white hover:bg-slate-700">
+            Find a home
           </NavLink>
         </div>
       </nav>

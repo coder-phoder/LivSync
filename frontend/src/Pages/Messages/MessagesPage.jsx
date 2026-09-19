@@ -83,11 +83,11 @@ function MessagesPage() {
     }
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate('/login', { replace: true })
+      navigate(role === 'landlord' ? '/landlord/login' : '/user/login', { replace: true })
       return
     }
     setError(requestError.response?.data?.message || requestError.message || fallback)
-  }, [clearSession, navigate])
+  }, [clearSession, navigate, role])
 
   useEffect(() => {
     let isCurrent = true

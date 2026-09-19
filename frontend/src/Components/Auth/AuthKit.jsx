@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
 import { useId, useState } from 'react'
 
-// Both auth pages sit on forest, so there is exactly one control style. The only light surface
-// in the flow is the profile card — the document being filled in.
+// Every authentication route shares this forest surface; the profile card stays light so the
+// registration flow reads like the document being filled in.
 const CONTROL =
   'mt-2 w-full rounded-xl border border-paper/20 bg-paper/6 px-3.5 py-3 text-[15px] text-paper outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#7E9282] focus:border-lime focus:bg-paper/10 focus:ring-3 focus:ring-lime/25'
 
@@ -57,64 +56,6 @@ export function PasswordField({ hint, ...props }) {
         </button>
       </div>
     </Field>
-  )
-}
-
-const ROLES = [
-  { value: 'user', title: 'Renting a place', copy: 'Search listings, match with roommates, apply and sign.', short: 'Renting' },
-  { value: 'landlord', title: 'Listing a property', copy: 'Publish the full cost, screen applicants, issue agreements.', short: 'Listing' },
-]
-
-// The account type decides the endpoint, so it is a real fork in the flow — not a settings toggle.
-export function AccountSwitch({ value, onChange, compact = false }) {
-  const reduce = useReducedMotion()
-  const spring = reduce ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 38 }
-
-  if (compact) {
-    return (
-      <div className="grid grid-cols-2 gap-1 rounded-full bg-paper/10 p-1">
-        {ROLES.map((role) => {
-          const active = value === role.value
-          return (
-            <button
-              key={role.value}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange(role.value)}
-              className={`relative cursor-pointer rounded-full px-3 py-2.5 text-[13.5px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime ${active ? 'text-forest' : 'text-forest-mute hover:text-paper'}`}
-            >
-              {active && <motion.span layoutId="role-pill" transition={spring} className="absolute inset-0 rounded-full bg-paper" />}
-              <span className="relative">{role.short}</span>
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid gap-2.5 sm:grid-cols-2">
-      {ROLES.map((role) => {
-        const active = value === role.value
-        return (
-          <button
-            key={role.value}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(role.value)}
-            className={`relative cursor-pointer rounded-2xl border p-4.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime ${active ? 'border-lime bg-paper/8' : 'border-paper/18 hover:border-paper/40'}`}
-          >
-            <span className="flex items-center gap-2.5">
-              <span className={`grid size-4.5 shrink-0 place-items-center rounded-full border-[1.5px] transition-colors ${active ? 'border-lime' : 'border-paper/35'}`}>
-                {active && <motion.span layoutId="role-dot" transition={spring} className="size-2 rounded-full bg-lime" />}
-              </span>
-              <span className="font-display text-[17px] font-semibold tracking-[-.02em] text-paper">{role.title}</span>
-            </span>
-            <span className="mt-2 block pl-7 text-[13.5px] leading-snug text-forest-mute">{role.copy}</span>
-          </button>
-        )
-      })}
-    </div>
   )
 }
 

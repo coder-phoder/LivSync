@@ -85,7 +85,7 @@ function BuddyPage() {
 
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate('/login', { replace: true })
+      navigate('/user/login', { replace: true })
       return
     }
 

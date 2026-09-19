@@ -26,12 +26,12 @@ function VerifyEmailPage() {
   const failWith = useCallback((requestError, fallback) => {
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate('/login', { replace: true })
+      navigate(isLandlord ? '/landlord/login' : '/user/login', { replace: true })
       return
     }
 
     setError(requestError.response?.data?.message || requestError.message || fallback)
-  }, [clearSession, navigate])
+  }, [clearSession, isLandlord, navigate])
 
   const requestCode = useCallback(async (isAutomatic) => {
     setError('')

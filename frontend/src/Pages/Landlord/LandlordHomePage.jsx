@@ -36,7 +36,7 @@ function LandlordHomePage() {
 
         if (requestError.response?.status === 401) {
           clearSession()
-          navigate('/login', { replace: true })
+          navigate('/landlord/login', { replace: true })
           return
         }
 
