@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-const { AUTH_COOKIE_NAME, getCookieOptions } = require('../middlewares/auth.middleware');
+const { getCookieOptions } = require('../middlewares/auth.middleware');
 const { issueOtpQuietly } = require('./verification.controller');
 
-const COOKIE_NAME = AUTH_COOKIE_NAME;
+const COOKIE_NAME = 'token';
 const TOKEN_DURATION = '7d';
 
 function createToken(userId) {

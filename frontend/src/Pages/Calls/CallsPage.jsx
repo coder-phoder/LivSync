@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import UserNavbar from '../../Components/User/UserNavbar'
-import { loginPathFor, useAuth } from '../../Context/AuthContext'
+import { useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const TICK_INTERVAL = 30 * 1000
@@ -46,11 +46,11 @@ function CallsPage() {
   const handleError = useCallback((requestError, fallback) => {
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate(loginPathFor(role), { replace: true })
+      navigate('/login', { replace: true })
     }
 
     return requestError.response?.data?.message || requestError.message || fallback
-  }, [clearSession, navigate, role])
+  }, [clearSession, navigate])
 
   useEffect(() => {
     let isCurrent = true

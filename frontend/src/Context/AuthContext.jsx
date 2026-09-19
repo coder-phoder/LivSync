@@ -1,59 +1,53 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { api } from '../apiClient'
+import { createContext, useContext, useMemo, useState } from 'react'
 
 const AuthContext = createContext(null)
+const SESSION_KEY = 'livsync-session'
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function loginPathFor(role) {
-  return role === 'landlord' ? '/login?as=landlord' : '/login?as=user'
-}
+function getStoredSession() {
+  try {
+    const storedSession = JSON.parse(localStorage.getItem(SESSION_KEY))
 
-const EMPTY_AUTH = { role: null, token: null, phone: '' }
-
-export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState(EMPTY_AUTH)
-  const [isSessionReady, setIsSessionReady] = useState(false)
-  const sessionVersion = useRef(0)
-
-  useEffect(() => {
-    const requestVersion = sessionVersion.current
-
-    const restoreSession = async () => {
-      try {
-        const response = await api.get('/session')
-        const session = response.data?.data?.session
-
-        if (sessionVersion.current === requestVersion && ['user', 'landlord'].includes(session?.role)) {
-          setAuth({ role: session.role, token: null, phone: session.phone || '' })
-        }
-      } catch {
-        // A failed restore must never block a visitor from signing in. The login request shows
-        // its own actionable error if the connection is still unavailable.
-      } finally {
-        if (sessionVersion.current === requestVersion) {
-          setIsSessionReady(true)
-        }
-      }
+    if (!['user', 'landlord'].includes(storedSession?.role)) {
+      return { role: null, token: null, phone: '' }
     }
 
-    restoreSession()
-  }, [])
+    return {
+      role: storedSession.role,
+      token: null,
+      phone: storedSession.phone || '',
+    }
+  } catch {
+    return { role: null, token: null, phone: '' }
+  }
+}
+
+// Safari in private browsing throws on every write, and a throw would land in the caller's catch
+// and abort a login that already succeeded. The session lives in the cookie regardless; storage
+// only survives a reload, so losing it is not worth failing the login over.
+function remember(write) {
+  try {
+    write()
+  } catch {
+    // storage unavailable
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [auth, setAuth] = useState(getStoredSession)
 
   const setSession = ({ role, token = null, phone = '' }) => {
-    sessionVersion.current += 1
     setAuth({ role, token, phone })
-    setIsSessionReady(true)
+    remember(() => localStorage.setItem(SESSION_KEY, JSON.stringify({ role, phone })))
   }
 
   const clearSession = () => {
-    sessionVersion.current += 1
-    setAuth(EMPTY_AUTH)
-    setIsSessionReady(true)
+    setAuth({ role: null, token: null, phone: '' })
+    remember(() => localStorage.removeItem(SESSION_KEY))
   }
 
   const value = useMemo(
-    () => ({ ...auth, isSessionReady, setSession, clearSession }),
-    [auth, isSessionReady],
+    () => ({ ...auth, setSession, clearSession }),
+    [auth],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

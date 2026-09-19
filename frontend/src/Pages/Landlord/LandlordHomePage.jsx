@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import VerifiedBadge from '../../Components/Common/VerifiedBadge'
-import { loginPathFor, useAuth } from '../../Context/AuthContext'
+import { useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -36,7 +36,7 @@ function LandlordHomePage() {
 
         if (requestError.response?.status === 401) {
           clearSession()
-          navigate(loginPathFor('landlord'), { replace: true })
+          navigate('/login', { replace: true })
           return
         }
 

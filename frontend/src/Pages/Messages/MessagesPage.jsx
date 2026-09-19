@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import MessageThread from '../../Components/Messages/MessageThread'
 import UserNavbar from '../../Components/User/UserNavbar'
-import { loginPathFor, useAuth } from '../../Context/AuthContext'
+import { useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const REFRESH_INTERVAL = 5 * 60 * 1000
@@ -33,12 +33,12 @@ function MessagesPage() {
 
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate(loginPathFor(role), { replace: true })
+      navigate('/login', { replace: true })
       return
     }
 
     setError(requestError.response?.data?.message || requestError.message || fallback)
-  }, [clearSession, navigate, role])
+  }, [clearSession, navigate])
 
   useEffect(() => {
     let isCurrent = true

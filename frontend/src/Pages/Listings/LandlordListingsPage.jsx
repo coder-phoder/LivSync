@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import ListingCard from '../../Components/Listings/ListingCard'
 import ListingForm from '../../Components/Listings/ListingForm'
-import { loginPathFor, useAuth } from '../../Context/AuthContext'
+import { useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -42,7 +42,7 @@ function LandlordListingsPage() {
 
         if (requestError.response?.status === 401) {
           clearSession()
-          navigate(loginPathFor('landlord'), { replace: true })
+          navigate('/login', { replace: true })
           return
         }
 

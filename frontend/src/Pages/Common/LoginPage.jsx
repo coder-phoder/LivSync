@@ -1,9 +1,11 @@
+import axios from 'axios'
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { AccountSwitch, AuthHeader, ErrorNote, Field, LABEL, PasswordField, SubmitButton } from '../../Components/Auth/AuthKit'
 import { CITIES } from '../../Components/Landing/landingContent'
 import { useAuth } from '../../Context/AuthContext'
-import { api, requestErrorMessage } from '../../apiClient'
+
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 const WAITING = [
   'Saved listings and the searches you set alerts on',
@@ -13,9 +15,8 @@ const WAITING = [
 
 function LoginPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const { setSession } = useAuth()
-  const [accountType, setAccountType] = useState(() => (searchParams.get('as') === 'landlord' ? 'landlord' : 'user'))
+  const [accountType, setAccountType] = useState('user')
   const [form, setForm] = useState({ identifier: '', password: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -32,10 +33,7 @@ function LoginPage() {
 
     try {
       const endpoint = accountType === 'landlord' ? '/landlord/login' : '/auth/login'
-      const response = await api.post(endpoint, {
-        identifier: form.identifier.trim(),
-        password: form.password,
-      })
+      const response = await axios.post(`${BASE_URL}${endpoint}`, form, { withCredentials: true })
       const account = accountType === 'landlord' ? response.data?.data?.landlord : response.data?.data?.user
 
       if (!response.data?.success || !account) {
@@ -60,7 +58,7 @@ function LoginPage() {
 
       navigate('/user', { replace: true })
     } catch (requestError) {
-      setError(requestErrorMessage(requestError, 'Unable to log in'))
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to log in')
     } finally {
       setIsSubmitting(false)
     }
