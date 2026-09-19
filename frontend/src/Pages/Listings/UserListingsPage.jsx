@@ -1,6 +1,7 @@
 import axios from 'axios'
-import { BellPlus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { BellPlus, Bookmark, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ListingCard from '../../Components/Listings/ListingCard'
 import ListingFilters from '../../Components/Listings/ListingFilters'
 import UserNavbar from '../../Components/User/UserNavbar'
@@ -305,6 +306,15 @@ function UserListingsPage() {
                 Filters
                 {draftChipCount > 0 && <span className="grid size-5 place-items-center rounded-full bg-clay text-[11px] font-semibold text-[#F7F5EF] tabular-nums">{draftChipCount}</span>}
               </button>
+
+              <Link
+                to="/saved"
+                className="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-card px-4 py-2.5 text-[14px] font-medium transition-colors hover:border-ink hover:bg-ink hover:text-[#F7F5EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              >
+                <Bookmark aria-hidden className="size-4" />
+                Saved homes
+                {savedListingIds.size > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-lime px-1.5 py-0.5 text-[10px] font-semibold text-ink tabular-nums">{savedListingIds.size}</span>}
+              </Link>
 
               <button
                 type="button"

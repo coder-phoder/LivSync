@@ -9,7 +9,6 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 const LINKS = [
   ['/user', 'Home', true],
   ['/user/listings', 'Listings'],
-  ['/saved', 'Saved'],
   ['/buddies', 'BuddyUp'],
   ['/rentals', 'Rentals'],
   ['/messages', 'Messages'],
@@ -78,7 +77,7 @@ function UserNavbar() {
           <span className="font-display text-[19px] font-bold tracking-[-.035em]">LivSync</span>
         </NavLink>
 
-        {/* Eight destinations only fit a laptop; below that they fold into the panel. */}
+        {/* The main destinations fold into the panel below laptop width. */}
         <div className="hidden flex-1 items-center gap-0.5 lg:flex">
           {LINKS.map(([to, label, end]) => (
             <NavLink key={to} to={to} end={end} className={linkClass}>{label}</NavLink>
