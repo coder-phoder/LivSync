@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ChevronDown, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import LandlordRentalCard from '../../Components/Landlord/LandlordRentalCard'
 import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import ApplicationTracker from '../../Components/Rentals/ApplicationTracker'
 import RequiredDocumentsPicker from '../../Components/Rentals/RequiredDocumentsPicker'
@@ -15,6 +16,7 @@ const SHELL = 'mx-auto w-full max-w-[1240px] px-5 sm:px-10 lg:px-16'
 
 const SOLID = 'inline-flex cursor-pointer items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[14.5px] font-medium text-[#F7F5EF] transition-colors hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-55'
 const GHOST = 'inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-card px-5 py-2.5 text-[14.5px] font-medium transition-colors hover:border-ink hover:bg-ink hover:text-[#F7F5EF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-55'
+const LANDLORD_GHOST = 'inline-flex cursor-pointer items-center gap-2 rounded-full border border-landlord-ink/20 bg-landlord-card px-5 py-2.5 text-[14.5px] font-medium text-landlord-ink-soft transition-colors hover:border-landlord-navy hover:bg-landlord-navy hover:text-landlord-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landlord-navy disabled:cursor-not-allowed disabled:opacity-55'
 const EYEBROW = 'font-mono text-[10.5px] uppercase tracking-[.16em] text-faint'
 const NOTE = 'basis-full text-[13px] leading-snug text-faint'
 
@@ -533,23 +535,28 @@ function RentalsPage() {
   const actions = { decide, confirmInPerson, chooseInPerson, saveDocuments, payOnline, openDocument, download }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-paper text-ink">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[linear-gradient(to_right,rgba(21,19,15,.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(21,19,15,.055)_1px,transparent_1px)] bg-[size:74px_74px]"
-        style={{ maskImage: 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)', WebkitMaskImage: 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)' }}
-      />
+    <div className={`relative min-h-screen overflow-x-hidden ${isLandlord ? 'bg-landlord-paper text-landlord-ink' : 'bg-paper text-ink'}`}>
+      {isLandlord ? (
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(ellipse_at_79%_0%,rgba(102,221,227,.28),transparent_25rem),linear-gradient(to_right,rgba(16,53,83,.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(16,53,83,.045)_1px,transparent_1px)] bg-[size:auto,76px_76px,76px_76px]" />
+      ) : (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[linear-gradient(to_right,rgba(21,19,15,.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(21,19,15,.055)_1px,transparent_1px)] bg-[size:74px_74px]"
+          style={{ maskImage: 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)', WebkitMaskImage: 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)' }}
+        />
+      )}
       <Navbar />
 
       <main className={`${SHELL} relative pb-20 pt-10 lg:pt-14`}>
         <header className="flex flex-wrap items-end justify-between gap-5">
           <div className="min-w-0">
-            <p className={EYEBROW}>{isLandlord ? 'Incoming' : 'Your applications'}</p>
-            <h1 className="mt-4 font-display text-[34px] leading-[1.0] font-bold tracking-[-.04em] text-balance sm:text-5xl">
-              {isLandlord ? 'Requests on your listings' : 'Rental applications'}
+            <p className={isLandlord ? 'font-mono text-[11px] uppercase tracking-[.17em] text-landlord-faint' : EYEBROW}>{isLandlord ? 'Tenant decisions' : 'Your applications'}</p>
+            <h1 className={`mt-4 font-display text-[34px] leading-[1.0] font-bold tracking-[-.04em] text-balance sm:text-5xl ${isLandlord ? 'max-w-[14em]' : ''}`}>
+              {isLandlord ? (counts.pending ? `${counts.pending} application${counts.pending === 1 ? '' : 's'} need review.` : 'Your tenant desk.') : 'Rental applications'}
             </h1>
+            {isLandlord && <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-landlord-muted">Compare applicants, make a confident decision, and keep every agreement on track.</p>}
           </div>
-          <button type="button" onClick={refresh} disabled={isLoading} className={GHOST}>
+          <button type="button" onClick={refresh} disabled={isLoading} className={isLandlord ? LANDLORD_GHOST : GHOST}>
             <RefreshCw aria-hidden className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
@@ -564,8 +571,10 @@ function RentalsPage() {
                 type="button"
                 onClick={() => setFilter(key)}
                 aria-pressed={filter === key}
-                className={`cursor-pointer rounded-full border px-4 py-2 text-[13.5px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
-                  filter === key ? 'border-ink bg-ink text-[#F7F5EF]' : 'border-ink/15 bg-card text-ink-soft hover:border-ink/40'
+                className={`cursor-pointer rounded-full border px-4 py-2 text-[13.5px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${isLandlord ? 'focus-visible:outline-landlord-navy' : 'focus-visible:outline-ink'} ${
+                  isLandlord
+                    ? (filter === key ? 'border-landlord-navy bg-landlord-navy text-landlord-card' : 'border-landlord-ink/15 bg-landlord-card text-landlord-ink-soft hover:border-landlord-navy/40')
+                    : (filter === key ? 'border-ink bg-ink text-[#F7F5EF]' : 'border-ink/15 bg-card text-ink-soft hover:border-ink/40')
                 }`}
               >
                 {label} <span className="tabular-nums opacity-60">{counts[key]}</span>
@@ -575,18 +584,18 @@ function RentalsPage() {
         )}
 
         {error && (
-          <p role="alert" className="mt-7 rounded-2xl border border-clay/30 bg-clay/8 p-4 text-[14.5px] text-clay">{error}</p>
+          <p role="alert" className={`mt-7 rounded-2xl p-4 text-[14.5px] ${isLandlord ? 'border border-landlord-alert/30 bg-landlord-card text-landlord-alert' : 'border border-clay/30 bg-clay/8 text-clay'}`}>{error}</p>
         )}
 
         {isLoading && (
           <div className="mt-8 grid gap-4" aria-busy="true" aria-label="Loading requests">
-            {[0, 1].map((row) => <span key={row} className="h-56 animate-pulse rounded-[22px] bg-ink/6" />)}
+            {[0, 1].map((row) => <span key={row} className={`h-56 animate-pulse rounded-[22px] ${isLandlord ? 'bg-landlord-ink/6' : 'bg-ink/6'}`} />)}
           </div>
         )}
 
         {!isLoading && !rentals.length && (
-          <div className="mt-8 max-w-xl rounded-[22px] border border-dashed border-ink/25 bg-ink/3 p-7">
-            <p className="text-[15.5px] leading-relaxed text-muted">
+          <div className={`mt-8 max-w-xl rounded-[22px] border border-dashed p-7 ${isLandlord ? 'border-landlord-ink/25 bg-landlord-card/55' : 'border-ink/25 bg-ink/3'}`}>
+            <p className={`text-[15.5px] leading-relaxed ${isLandlord ? 'text-landlord-muted' : 'text-muted'}`}>
               {isLandlord
                 ? 'No tenant has requested one of your listings yet. Requests land here the moment one is sent.'
                 : 'You have not requested a listing yet. Open a listing you like and send a request to rent.'}
@@ -598,15 +607,17 @@ function RentalsPage() {
         )}
 
         {!isLoading && rentals.length > 0 && !visible.length && (
-          <p className="mt-8 rounded-[22px] border border-dashed border-ink/25 bg-ink/3 p-6 text-[15px] text-muted">
+          <p className={`mt-8 rounded-[22px] border border-dashed p-6 text-[15px] ${isLandlord ? 'border-landlord-ink/25 bg-landlord-card/55 text-landlord-muted' : 'border-ink/25 bg-ink/3 text-muted'}`}>
             Nothing in this state.{' '}
-            <button type="button" onClick={() => setFilter('all')} className="cursor-pointer font-medium text-ink underline underline-offset-2 hover:text-clay">Show all</button>
+            <button type="button" onClick={() => setFilter('all')} className={`cursor-pointer font-medium underline underline-offset-2 ${isLandlord ? 'text-landlord-ink hover:text-landlord-blue' : 'text-ink hover:text-clay'}`}>Show all</button>
           </p>
         )}
 
         <div className="mt-8 grid gap-5">
           {!isLoading && visible.map((rental) => (
-            <RentalCard key={rental.id} rental={rental} isLandlord={isLandlord} isBusy={busyId === rental.id} actions={actions} />
+            isLandlord
+              ? <LandlordRentalCard key={rental.id} rental={rental} isBusy={busyId === rental.id} actions={actions} />
+              : <RentalCard key={rental.id} rental={rental} isLandlord={false} isBusy={busyId === rental.id} actions={actions} />
           ))}
         </div>
       </main>
