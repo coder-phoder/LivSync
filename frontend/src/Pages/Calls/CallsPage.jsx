@@ -71,29 +71,33 @@ function labelOf(call, state, role) {
   return state === 'live' ? 'Live now' : 'Scheduled'
 }
 
-function ScheduleForm({ schedule, error, isBusy, onChange, onSubmit, onClose }) {
+function ScheduleForm({ schedule, error, isBusy, onChange, onSubmit, onClose, isLandlord = false }) {
+  const fieldClass = isLandlord
+    ? 'mt-1.5 w-full rounded-xl border border-landlord-ink/20 bg-landlord-card px-3 py-2.5 text-[14px] text-landlord-ink outline-none transition-colors focus:border-landlord-navy'
+    : FIELD
+  const eyebrowClass = isLandlord ? 'font-mono text-[10.5px] uppercase tracking-[.16em] text-landlord-faint' : EYEBROW
   return (
-    <form onSubmit={onSubmit} className="mt-4 grid gap-3 border-t border-ink/10 pt-4 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end">
+    <form onSubmit={onSubmit} className={`mt-4 grid gap-3 border-t pt-4 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end ${isLandlord ? 'border-landlord-ink/10' : 'border-ink/10'}`}>
       <label className="block">
-        <span className={EYEBROW}>Date</span>
-        <input type="date" required min={new Date().toISOString().slice(0, 10)} value={schedule.date} onChange={(event) => onChange({ ...schedule, date: event.target.value })} className={FIELD} />
+        <span className={eyebrowClass}>Date</span>
+        <input type="date" required min={new Date().toISOString().slice(0, 10)} value={schedule.date} onChange={(event) => onChange({ ...schedule, date: event.target.value })} className={fieldClass} />
       </label>
       <label className="block">
-        <span className={EYEBROW}>Starts</span>
-        <input type="time" required value={schedule.time} onChange={(event) => onChange({ ...schedule, time: event.target.value })} className={FIELD} />
+        <span className={eyebrowClass}>Starts</span>
+        <input type="time" required value={schedule.time} onChange={(event) => onChange({ ...schedule, time: event.target.value })} className={fieldClass} />
       </label>
       <label className="block">
-        <span className={EYEBROW}>Length</span>
-        <select value={schedule.durationMinutes} onChange={(event) => onChange({ ...schedule, durationMinutes: event.target.value })} className={`${FIELD} cursor-pointer`}>
+        <span className={eyebrowClass}>Length</span>
+        <select value={schedule.durationMinutes} onChange={(event) => onChange({ ...schedule, durationMinutes: event.target.value })} className={`${fieldClass} cursor-pointer`}>
           <option value={15}>15 minutes</option>
           <option value={30}>30 minutes</option>
         </select>
       </label>
       <div className="flex flex-wrap items-center gap-2.5">
-        <button type="submit" disabled={isBusy} className={SOLID}>{isBusy ? 'Saving…' : 'Confirm time'}</button>
-        <button type="button" onClick={onClose} className="cursor-pointer text-[14px] font-medium text-muted underline underline-offset-2 transition-colors hover:text-clay">Cancel</button>
+        <button type="submit" disabled={isBusy} className={isLandlord ? 'inline-flex cursor-pointer items-center gap-2 rounded-full bg-landlord-navy px-5 py-2.5 text-[14.5px] font-medium text-landlord-card transition-colors hover:bg-landlord-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landlord-navy disabled:cursor-not-allowed disabled:opacity-55' : SOLID}>{isBusy ? 'Saving…' : 'Confirm time'}</button>
+        <button type="button" onClick={onClose} className={`cursor-pointer text-[14px] font-medium underline underline-offset-2 transition-colors ${isLandlord ? 'text-landlord-muted hover:text-landlord-blue' : 'text-muted hover:text-clay'}`}>Cancel</button>
       </div>
-      {error && <p role="alert" className="text-[13.5px] text-clay sm:col-span-4">{error}</p>}
+      {error && <p role="alert" className={`text-[13.5px] sm:col-span-4 ${isLandlord ? 'text-landlord-alert' : 'text-clay'}`}>{error}</p>}
     </form>
   )
 }
@@ -104,17 +108,17 @@ function NextCall({ call, state, now, role, isBusy, actions }) {
   const isLive = state === 'live'
 
   return (
-    <section className="mt-8 rounded-[26px] border border-forest bg-forest p-6 text-[#F4F1EA] shadow-[0_34px_60px_-44px_rgba(19,50,42,.95)] sm:p-8">
+    <section className={`mt-8 rounded-[26px] border p-6 shadow-[0_34px_60px_-44px_rgba(16,53,83,.95)] sm:p-8 ${role === 'landlord' ? 'border-landlord-navy bg-landlord-navy text-landlord-card' : 'border-forest bg-forest text-[#F4F1EA] shadow-[0_34px_60px_-44px_rgba(19,50,42,.95)]'}`}>
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[.16em] text-forest-mute">
-            {isLive && <span aria-hidden className="size-2 rounded-full bg-lime animate-pulse-ring" />}
+          <p className={`flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[.16em] ${role === 'landlord' ? 'text-landlord-cyan' : 'text-forest-mute'}`}>
+            {isLive && <span aria-hidden className={`size-2 rounded-full animate-pulse-ring ${role === 'landlord' ? 'bg-landlord-cyan' : 'bg-lime'}`} />}
             {isLive ? 'Live now' : 'Next call'}
           </p>
           <h2 className="mt-3.5 font-display text-[28px] leading-[1.05] font-bold tracking-[-.035em] text-balance sm:text-[38px]">
             {call.mode === 'voice' ? 'Voice call' : 'Video call'} with {call.counterpart?.name || 'Unknown'}
           </h2>
-          <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14.5px] text-forest-mute">
+          <p className={`mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14.5px] ${role === 'landlord' ? 'text-landlord-card/65' : 'text-forest-mute'}`}>
             <Icon aria-hidden className="size-4" />
             {when(call.startAt)}
             <span aria-hidden>·</span>
@@ -124,11 +128,11 @@ function NextCall({ call, state, now, role, isBusy, actions }) {
 
         <div className="flex flex-wrap items-center gap-2.5">
           {isLive ? (
-            <button type="button" onClick={() => actions.join(call)} className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-lime px-6 py-3 text-[15px] font-semibold text-forest-deep transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime">
+            <button type="button" onClick={() => actions.join(call)} className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-6 py-3 text-[15px] font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 ${role === 'landlord' ? 'bg-landlord-cyan text-landlord-ink focus-visible:outline-landlord-cyan' : 'bg-lime text-forest-deep focus-visible:outline-lime'}`}>
               Join now
             </button>
           ) : (
-            <span className="rounded-full border border-[#F4F1EA]/25 px-4 py-2.5 text-[14px] font-medium tabular-nums">Starts {countdown(call.startAt, now)}</span>
+            <span className={`rounded-full border px-4 py-2.5 text-[14px] font-medium tabular-nums ${role === 'landlord' ? 'border-landlord-card/25' : 'border-[#F4F1EA]/25'}`}>Starts {countdown(call.startAt, now)}</span>
           )}
           {role === 'landlord' && <button type="button" onClick={() => actions.openSchedule(call)} className={ON_DARK}>Reschedule</button>}
           <button type="button" onClick={() => actions.cancelCall(call)} disabled={isBusy} className={ON_DARK}>Cancel</button>
@@ -141,43 +145,47 @@ function NextCall({ call, state, now, role, isBusy, actions }) {
 function CallRow({ call, state, role, isBusy, scheduleProps, actions }) {
   const Icon = call.mode === 'voice' ? Phone : Video
   const isClosed = state === 'finished' || state === 'cancelled'
+  const isLandlord = role === 'landlord'
+  const rowClass = isLandlord ? 'border-landlord-ink/15 bg-landlord-card' : 'border-ink/15 bg-card'
+  const muted = isLandlord ? 'text-landlord-muted' : 'text-muted'
+  const faint = isLandlord ? 'text-landlord-faint' : 'text-faint'
 
   return (
-    <li className={`rounded-[20px] border border-ink/15 bg-card p-4 transition-colors sm:p-5 ${isClosed ? 'opacity-70' : 'hover:border-ink/30'}`}>
+    <li className={`rounded-[20px] border p-4 transition-colors sm:p-5 ${rowClass} ${isClosed ? 'opacity-70' : isLandlord ? 'hover:border-landlord-ink/35' : 'hover:border-ink/30'}`}>
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 gap-3.5">
-          <span aria-hidden className={`grid size-11 shrink-0 place-items-center rounded-2xl ${isClosed ? 'bg-ink/6 text-faint' : 'bg-forest text-lime'}`}>
+          <span aria-hidden className={`grid size-11 shrink-0 place-items-center rounded-2xl ${isClosed ? (isLandlord ? 'bg-landlord-ink/6 text-landlord-faint' : 'bg-ink/6 text-faint') : (isLandlord ? 'bg-landlord-navy text-landlord-cyan' : 'bg-forest text-lime')}`}>
             <Icon className="size-5" />
           </span>
           <div className="min-w-0">
             <p className="font-display text-[17px] font-semibold tracking-[-.025em]">{call.counterpart?.name || 'Unknown'}</p>
-            <p className="mt-1 text-[13.5px] text-muted">
+            <p className={`mt-1 text-[13.5px] ${muted}`}>
               {call.mode === 'voice' ? 'Voice' : 'Video'} · {call.startAt ? formatWindow(call) : 'No time set yet'}
             </p>
-            <p className="mt-0.5 truncate text-[13.5px] text-faint">
+            <p className={`mt-0.5 truncate text-[13.5px] ${faint}`}>
               {call.listing?.title || 'Listing removed'}{call.listing?.city ? ` · ${call.listing.city}` : ''}
             </p>
-            {call.note && <p className="mt-2 border-l-2 border-ink/15 pl-3 text-[13.5px] leading-snug text-ink-soft">{call.note}</p>}
+            {call.note && <p className={`mt-2 border-l-2 pl-3 text-[13.5px] leading-snug ${isLandlord ? 'border-landlord-ink/15 text-landlord-ink-soft' : 'border-ink/15 text-ink-soft'}`}>{call.note}</p>}
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-full border px-3 py-1 text-[12.5px] font-medium ${PILLS[state]}`}>{labelOf(call, state, role)}</span>
-          {state === 'live' && <button type="button" onClick={() => actions.join(call)} className={SOLID}>Join now</button>}
+          <span className={`rounded-full border px-3 py-1 text-[12.5px] font-medium ${isLandlord ? ({ live: 'border-landlord-navy bg-landlord-navy text-landlord-cyan', upcoming: 'border-landlord-blue/35 bg-landlord-blue/8 text-landlord-ink-soft', requested: 'border-landlord-amber/45 bg-landlord-amber/12 text-landlord-ink-soft', finished: 'border-landlord-ink/12 bg-landlord-ink/4 text-landlord-faint', cancelled: 'border-landlord-alert/35 bg-landlord-alert/10 text-landlord-alert' })[state] : PILLS[state]}`}>{labelOf(call, state, role)}</span>
+          {state === 'live' && <button type="button" onClick={() => actions.join(call)} className={isLandlord ? 'inline-flex cursor-pointer items-center gap-2 rounded-full bg-landlord-navy px-5 py-2.5 text-[14.5px] font-medium text-landlord-card transition-colors hover:bg-landlord-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landlord-navy' : SOLID}>Join now</button>}
           {role === 'landlord' && !isClosed && (
-            <button type="button" onClick={() => actions.openSchedule(call)} className={GHOST}>
+            <button type="button" onClick={() => actions.openSchedule(call)} className={isLandlord ? 'inline-flex cursor-pointer items-center gap-2 rounded-full border border-landlord-ink/20 bg-landlord-card px-4 py-2.5 text-[14px] font-medium text-landlord-ink transition-colors hover:border-landlord-navy hover:bg-landlord-navy hover:text-landlord-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landlord-navy' : GHOST}>
               {call.status === 'requested' ? 'Set a time' : 'Reschedule'}
             </button>
           )}
           {!isClosed && (
-            <button type="button" onClick={() => actions.cancelCall(call)} disabled={isBusy} className={GHOST}>
+            <button type="button" onClick={() => actions.cancelCall(call)} disabled={isBusy} className={isLandlord ? 'inline-flex cursor-pointer items-center gap-2 rounded-full border border-landlord-ink/20 bg-landlord-card px-4 py-2.5 text-[14px] font-medium text-landlord-ink transition-colors hover:border-landlord-alert hover:bg-landlord-alert hover:text-landlord-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landlord-navy disabled:cursor-not-allowed disabled:opacity-55' : GHOST}>
               {role === 'landlord' && call.status === 'requested' ? 'Decline' : 'Cancel'}
             </button>
           )}
         </div>
       </div>
 
-      {scheduleProps && <ScheduleForm {...scheduleProps} isBusy={isBusy} />}
+      {scheduleProps && <ScheduleForm {...scheduleProps} isBusy={isBusy} isLandlord={isLandlord} />}
     </li>
   )
 }
@@ -326,43 +334,43 @@ function CallsPage() {
     : null)
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-paper text-ink">
+    <div className={`relative min-h-screen overflow-x-hidden ${isLandlord ? 'bg-landlord-paper text-landlord-ink' : 'bg-paper text-ink'}`}>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[linear-gradient(to_right,rgba(21,19,15,.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(21,19,15,.055)_1px,transparent_1px)] bg-[size:74px_74px]"
-        style={{ maskImage: 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)', WebkitMaskImage: 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)' }}
+        className={`pointer-events-none absolute inset-x-0 top-0 h-[620px] ${isLandlord ? 'bg-[radial-gradient(ellipse_at_79%_0%,rgba(102,221,227,.27),transparent_25rem),linear-gradient(to_right,rgba(16,53,83,.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(16,53,83,.045)_1px,transparent_1px)] bg-[size:auto,76px_76px,76px_76px]' : 'bg-[linear-gradient(to_right,rgba(21,19,15,.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(21,19,15,.055)_1px,transparent_1px)] bg-[size:74px_74px]'}`}
+        style={{ maskImage: isLandlord ? 'radial-gradient(105% 62% at 78% 0%, #000 16%, transparent 76%)' : 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)', WebkitMaskImage: isLandlord ? 'radial-gradient(105% 62% at 78% 0%, #000 16%, transparent 76%)' : 'radial-gradient(105% 62% at 22% 0%, #000 16%, transparent 76%)' }}
       />
       <Navbar />
 
       <main className={`${SHELL} relative pb-20 pt-10 lg:pt-14`}>
         <header className="flex flex-wrap items-end justify-between gap-5">
           <div className="min-w-0">
-            <p className={EYEBROW}>Video and voice</p>
+            <p className={isLandlord ? 'font-mono text-[10.5px] uppercase tracking-[.16em] text-landlord-faint' : EYEBROW}>{isLandlord ? 'Tenant viewings' : 'Video and voice'}</p>
             <h1 className="mt-4 font-display text-[34px] leading-[1.0] font-bold tracking-[-.04em] sm:text-5xl">Calls</h1>
-            <p className="mt-3 max-w-[46em] text-[15px] leading-relaxed text-muted">
+            <p className={`mt-3 max-w-[46em] text-[15px] leading-relaxed ${isLandlord ? 'text-landlord-muted' : 'text-muted'}`}>
               {isLandlord
                 ? 'Tenants ask for a call and you set the date and time. A call lasts at most 30 minutes and the room is open only between its start and end.'
                 : 'Ask for a call from a listing. Once the landlord sets a time you can join any moment between its start and end.'}
             </p>
           </div>
-          <button type="button" onClick={refresh} disabled={isLoading} className={GHOST}>
+          <button type="button" onClick={refresh} disabled={isLoading} className={isLandlord ? 'inline-flex cursor-pointer items-center gap-2 rounded-full border border-landlord-ink/20 bg-landlord-card px-4 py-2.5 text-[14px] font-medium text-landlord-ink transition-colors hover:border-landlord-navy hover:bg-landlord-navy hover:text-landlord-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-landlord-navy disabled:cursor-not-allowed disabled:opacity-55' : GHOST}>
             <RefreshCw aria-hidden className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
         </header>
 
-        {error && <p role="alert" className="mt-7 rounded-2xl border border-clay/30 bg-clay/8 p-4 text-[14.5px] text-clay">{error}</p>}
+        {error && <p role="alert" className={`mt-7 rounded-2xl border p-4 text-[14.5px] ${isLandlord ? 'border-landlord-alert/30 bg-landlord-card text-landlord-alert' : 'border-clay/30 bg-clay/8 text-clay'}`}>{error}</p>}
 
         {isLoading && (
           <div className="mt-8 grid gap-4" aria-busy="true" aria-label="Loading calls">
-            <span className="h-36 animate-pulse rounded-[26px] bg-ink/6" />
-            {[0, 1].map((row) => <span key={row} className="h-24 animate-pulse rounded-[20px] bg-ink/6" />)}
+            <span className={`h-36 animate-pulse rounded-[26px] ${isLandlord ? 'bg-landlord-ink/6' : 'bg-ink/6'}`} />
+            {[0, 1].map((row) => <span key={row} className={`h-24 animate-pulse rounded-[20px] ${isLandlord ? 'bg-landlord-ink/6' : 'bg-ink/6'}`} />)}
           </div>
         )}
 
         {!isLoading && !calls.length && (
-          <div className="mt-8 max-w-xl rounded-[22px] border border-dashed border-ink/25 bg-ink/3 p-7">
-            <p className="text-[15.5px] leading-relaxed text-muted">
+          <div className={`mt-8 max-w-xl rounded-[22px] border border-dashed p-7 ${isLandlord ? 'border-landlord-ink/25 bg-landlord-card/55' : 'border-ink/25 bg-ink/3'}`}>
+            <p className={`text-[15.5px] leading-relaxed ${isLandlord ? 'text-landlord-muted' : 'text-muted'}`}>
               {isLandlord
                 ? 'No tenant has asked for a call yet. Requests land here the moment one is sent.'
                 : 'No calls yet. Open a listing you like and ask the landlord for a video or voice call.'}
@@ -375,14 +383,14 @@ function CallsPage() {
         )}
 
         {!isLoading && next && schedule.callId === next[0].id && (
-          <div className="mt-4 rounded-[20px] border border-ink/15 bg-card px-5 pb-5">
-            <ScheduleForm {...scheduleFor(next[0])} isBusy={busyId === next[0].id} />
+          <div className={`mt-4 rounded-[20px] border px-5 pb-5 ${isLandlord ? 'border-landlord-ink/15 bg-landlord-card' : 'border-ink/15 bg-card'}`}>
+            <ScheduleForm {...scheduleFor(next[0])} isBusy={busyId === next[0].id} isLandlord={isLandlord} />
           </div>
         )}
 
         {groups.map(([key, title, rows]) => (
           <section key={key} className="mt-10" aria-labelledby={`calls-${key}`}>
-            <h2 id={`calls-${key}`} className={EYEBROW}>{title} <span className="tabular-nums opacity-70">({rows.length})</span></h2>
+            <h2 id={`calls-${key}`} className={isLandlord ? 'font-mono text-[10.5px] uppercase tracking-[.16em] text-landlord-faint' : EYEBROW}>{title} <span className="tabular-nums opacity-70">({rows.length})</span></h2>
             <ul className="mt-4 grid gap-3">
               {rows.map(([call, state]) => (
                 <CallRow
