@@ -70,10 +70,10 @@ function RequiredDocumentsPicker({ requirements = [], selectedDocuments = [], on
   if (!normalizedRequirements.length) return null
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <h3 className="font-semibold text-slate-900">{title}</h3>
-      <p className="mt-1 text-xs text-slate-600">Select a file already in your vault, or upload it now. Only the selected file is shared with this landlord.</p>
-      {isLoading && <p className="mt-3 text-sm text-slate-600">Loading your document vault…</p>}
+    <section className="rounded-2xl border border-ink/12 bg-paper/60 p-4">
+      <h3 className="font-display text-[15.5px] font-semibold tracking-[-.02em]">{title}</h3>
+      <p className="mt-1 text-[12.5px] leading-snug text-muted">Select a file already in your vault, or upload it now. Only the selected file is shared with this landlord.</p>
+      {isLoading && <p className="mt-3 text-[13.5px] text-muted">Loading your document vault…</p>}
 
       {!isLoading && (
         <div className="mt-4 space-y-4">
@@ -81,10 +81,10 @@ function RequiredDocumentsPicker({ requirements = [], selectedDocuments = [], on
             const isUploading = uploadingRequirement === requirement.requirementId
 
             return (
-              <div key={requirement.requirementId} className="rounded-md border border-slate-200 bg-white p-3">
-                <label className="block text-xs font-semibold text-slate-700">
+              <div key={requirement.requirementId} className="rounded-xl border border-ink/12 bg-card p-3.5">
+                <label className="block font-mono text-[10.5px] uppercase tracking-[.14em] text-faint">
                   {requirement.name}
-                  <select value={selection[requirement.requirementId] || ''} onChange={(event) => updateSelection(requirement.requirementId, event.target.value)} disabled={disabled || isUploading} required className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-slate-700 disabled:bg-slate-100">
+                  <select value={selection[requirement.requirementId] || ''} onChange={(event) => updateSelection(requirement.requirementId, event.target.value)} disabled={disabled || isUploading} required className="mt-1.5 w-full cursor-pointer rounded-xl border border-ink/20 bg-card px-3 py-2.5 font-sans text-[14px] tracking-normal text-ink normal-case outline-none transition-colors focus:border-ink disabled:cursor-not-allowed disabled:opacity-55">
                     <option value="">Choose a vault document</option>
                     {documents.map((document) => {
                       const selectedElsewhere = Object.entries(selection).some(([otherRequirement, selectedDocumentId]) => otherRequirement !== requirement.requirementId && selectedDocumentId === document.id)
@@ -92,17 +92,17 @@ function RequiredDocumentsPicker({ requirements = [], selectedDocuments = [], on
                     })}
                   </select>
                 </label>
-                <label className="mt-2 block text-xs font-medium text-slate-600">
-                  Or upload {requirement.name} now <span className="font-normal">(PDF, JPEG, PNG; max 10 MB)</span>
-                  <input type="file" accept={ACCEPTED_FILES} onChange={(event) => uploadForRequirement(requirement, event.target.files?.[0])} disabled={disabled || isUploading} className="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 hover:file:bg-slate-300 disabled:opacity-60" />
+                <label className="mt-3 block text-[12.5px] text-muted">
+                  Or upload {requirement.name} now <span className="text-faint">(PDF, JPEG, PNG; max 10 MB)</span>
+                  <input type="file" accept={ACCEPTED_FILES} onChange={(event) => uploadForRequirement(requirement, event.target.files?.[0])} disabled={disabled || isUploading} className="mt-1.5 block w-full cursor-pointer text-[13px] text-muted file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-ink file:px-3.5 file:py-1.5 file:text-[12.5px] file:font-medium file:text-[#F7F5EF] hover:file:bg-clay disabled:opacity-55" />
                 </label>
-                {isUploading && <p className="mt-2 text-xs text-slate-500">Uploading to your vault…</p>}
+                {isUploading && <p className="mt-2 text-[12px] text-faint">Uploading to your vault…</p>}
               </div>
             )
           })}
         </div>
       )}
-      {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-[13.5px] text-clay">{error}</p>}
     </section>
   )
 }

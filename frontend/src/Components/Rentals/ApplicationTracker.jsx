@@ -1,9 +1,9 @@
-const STAGE_STYLES = {
-  complete: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-  current: 'border-slate-900 bg-slate-900 text-white',
-  upcoming: 'border-slate-200 bg-slate-50 text-slate-500',
-  unavailable: 'border-slate-200 bg-slate-50 text-slate-400',
-  rejected: 'border-red-200 bg-red-50 text-red-700',
+const STAGE_TONES = {
+  complete: { bar: 'bg-forest', text: 'text-ink-soft' },
+  current: { bar: 'bg-clay', text: 'text-ink' },
+  upcoming: { bar: 'bg-ink/12', text: 'text-faint' },
+  unavailable: { bar: 'bg-ink/8', text: 'text-faint' },
+  rejected: { bar: 'bg-clay', text: 'text-clay' },
 }
 
 function stageState(rental, index) {
@@ -54,26 +54,26 @@ function stageDetails(rental) {
   ]
 }
 
+// A six-step rail: a filled bar per stage, the label under it. No boxes, no colour blocks.
 function ApplicationTracker({ rental }) {
   const stages = stageDetails(rental)
 
   return (
-    <section className="mt-5 border-t border-slate-200 pt-4" aria-labelledby={`application-progress-${rental.id}`}>
-      <div className="flex items-center justify-between gap-3">
-        <h3 id={`application-progress-${rental.id}`} className="text-sm font-semibold text-slate-800">Application progress</h3>
-        <span className="text-xs text-slate-500">{rental.status === 'paid' ? 'Complete' : 'Live status'}</span>
+    <section className="mt-5" aria-labelledby={`application-progress-${rental.id}`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 id={`application-progress-${rental.id}`} className="font-mono text-[10.5px] uppercase tracking-[.16em] text-faint">Application progress</h3>
+        <span className="font-mono text-[10.5px] uppercase tracking-[.12em] text-faint">{rental.status === 'paid' ? 'Complete' : 'Live'}</span>
       </div>
-      <ol className="mt-3 grid gap-2 sm:grid-cols-6">
+      <ol className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3.5 sm:grid-cols-3 lg:grid-cols-6">
         {stages.map((stage, index) => {
           const state = stageState(rental, index)
+          const tone = STAGE_TONES[state]
 
           return (
-            <li key={stage.title} className={`rounded-lg border p-3 ${STAGE_STYLES[state]}`} aria-current={state === 'current' || state === 'rejected' ? 'step' : undefined}>
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-[11px] font-bold">{state === 'complete' ? '✓' : index + 1}</span>
-                <p className="text-xs font-semibold leading-tight">{stage.title}</p>
-              </div>
-              <p className="mt-2 text-xs leading-tight opacity-80">{stage.detail}</p>
+            <li key={stage.title} aria-current={state === 'current' || state === 'rejected' ? 'step' : undefined}>
+              <span aria-hidden className={`block h-1 rounded-full ${tone.bar}`} />
+              <p className={`mt-2 text-[13px] leading-tight font-medium ${tone.text}`}>{stage.title}</p>
+              <p className="mt-0.5 text-[12px] leading-tight text-faint">{stage.detail}</p>
             </li>
           )
         })}
