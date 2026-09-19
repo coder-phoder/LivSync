@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 
 const PROPERTY_TYPES = ['apartment', 'house', 'room', 'commercial'];
@@ -71,29 +70,9 @@ function handleValidationErrors(req, res, next) {
     return next();
 }
 
-function requireLandlordAuth(req, res, next) {
-    try {
-        const token = req.cookies.token;
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
-
-        if (!payload.landlordId) {
-            throw new Error('Invalid landlord session');
-        }
-
-        req.landlordId = payload.landlordId;
-        return next();
-    } catch (error) {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid or expired landlord session',
-            data: {},
-        });
-    }
-}
 
 module.exports = {
     validateLandlordRegistration,
     validateLandlordLogin,
     validateSignature,
-    requireLandlordAuth,
 };

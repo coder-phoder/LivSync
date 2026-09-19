@@ -10,8 +10,8 @@ const {
     validateLandlordRegistration,
     validateLandlordLogin,
     validateSignature,
-    requireLandlordAuth,
 } = require('../middlewares/landlord.middleware');
+const { requireLandlordAuth } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 

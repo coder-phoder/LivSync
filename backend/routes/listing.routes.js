@@ -10,8 +10,7 @@ const {
     deleteListing,
 } = require('../controllers/listing.controller');
 const { chatAboutListing } = require('../controllers/chat.controller');
-const { requireLandlordAuth } = require('../middlewares/landlord.middleware');
-const { requireParticipant } = require('../middlewares/auth.middleware');
+const { requireParticipant, requireLandlordAuth } = require('../middlewares/auth.middleware');
 const {
     validateListingCreation,
     validateListingUpdate,

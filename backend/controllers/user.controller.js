@@ -1,21 +1,10 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-const { getCookieOptions } = require('../middlewares/auth.middleware');
+const Session = require('../models/session.model');
+const { endSession } = require('../middlewares/auth.middleware');
 const { issueOtpQuietly } = require('./verification.controller');
 
-const COOKIE_NAME = 'token';
-const TOKEN_DURATION = '7d';
-
-function createToken(userId) {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: TOKEN_DURATION });
-}
-
-function invalidateUserSession(res) {
-    return res.clearCookie(COOKIE_NAME, getCookieOptions(false)).status(401).json({
-        success: false,
-        message: 'Your session is no longer valid. Please log in again.',
-        data: {},
-    });
+function invalidateUserSession(req, res) {
+    return endSession(req, res, 'Your session is no longer valid. Please log in again.');
 }
 
 function serializeUser(user) {
@@ -46,14 +35,14 @@ async function registerUser(req, res) {
         }
 
         const user = await User.create({ name, phone, email, dob, gender, password, role });
-        const token = createToken(user.id);
+        const token = await Session.issue(user.id, 'user');
 
         issueOtpQuietly(user, 'user');
 
-        return res.status(201).cookie(COOKIE_NAME, token, getCookieOptions()).json({
+        return res.status(201).json({
             success: true,
             message: 'User registered successfully',
-            data: { user: serializeUser(user) },
+            data: { token, user: serializeUser(user) },
         });
     } catch (error) {
         if (error.code === 11000) {
@@ -89,12 +78,12 @@ async function loginUser(req, res) {
             });
         }
 
-        const token = createToken(user.id);
+        const token = await Session.issue(user.id, 'user');
 
-        return res.cookie(COOKIE_NAME, token, getCookieOptions()).json({
+        return res.json({
             success: true,
             message: 'Login successful',
-            data: { user: serializeUser(user) },
+            data: { token, user: serializeUser(user) },
         });
     } catch (error) {
         return res.status(500).json({
@@ -107,7 +96,9 @@ async function loginUser(req, res) {
 
 async function logoutUser(req, res) {
     try {
-        return res.clearCookie(COOKIE_NAME, getCookieOptions(false)).json({
+        await Session.revoke(req.sessionToken);
+
+        return res.json({
             success: true,
             message: 'Logout successful',
             data: {},
@@ -126,7 +117,7 @@ async function getUserProfile(req, res) {
         const user = await User.findById(req.userId);
 
         if (!user) {
-            return invalidateUserSession(res);
+            return invalidateUserSession(req, res);
         }
 
         res.set('Cache-Control', 'private, no-store');
@@ -150,7 +141,7 @@ async function updateUserPreferences(req, res) {
         const user = await User.findById(req.userId);
 
         if (!user) {
-            return invalidateUserSession(res);
+            return invalidateUserSession(req, res);
         }
 
         user.preferences = { ...user.preferences?.toObject(), ...req.body.preferences };

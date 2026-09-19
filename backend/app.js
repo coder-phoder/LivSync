@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const connectToDb = require('./db/db');
 const userRoutes = require('./routes/user.routes');
@@ -27,7 +26,6 @@ app.use(cors({
 // The raw body is kept so the Razorpay webhook signature can be checked against exactly what was sent.
 app.use(express.json({ verify: (req, res, buffer) => { req.rawBody = buffer; } }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 connectToDb();
 

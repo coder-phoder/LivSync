@@ -1,77 +1,65 @@
-const jwt = require('jsonwebtoken');
+const Session = require('../models/session.model');
 
-const COOKIE_DURATION = 7 * 24 * 60 * 60 * 1000;
-// Safari blocks third-party cookies outright, so the API has to reach the browser through the
-// site's own domain (a Render rewrite of /api/* onto this service) rather than a sibling
-// onrender.com subdomain. That makes the session cookie first-party, which Lax covers and every
-// browser accepts. Keyed off CLIENT_URL because Render sets no NODE_ENV.
-const isDeployed = (process.env.CLIENT_URL || '').startsWith('https://');
+const BEARER = /^Bearer\s+(\S+)$/i;
 
-function getCookieOptions(includeMaxAge = true) {
-    const options = {
-        httpOnly: true,
-        secure: isDeployed,
-        sameSite: 'lax',
-    };
+function readToken(req) {
+    const match = BEARER.exec(req.get('authorization') || '');
 
-    if (includeMaxAge) options.maxAge = COOKIE_DURATION;
-
-    return options;
+    return match ? match[1] : '';
 }
 
-function requireAuth(req, res, next) {
-    try {
-        const token = req.cookies.token;
-
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required',
-                data: {},
-            });
-        }
-
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
-
-        if (!payload.userId) {
-            throw new Error('Invalid user session');
-        }
-
-        req.userId = payload.userId;
-        return next();
-    } catch (error) {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid or expired session',
-            data: {},
-        });
-    }
+function unauthorized(res, message = 'Please log in to continue') {
+    return res.status(401).json({ success: false, message, data: {} });
 }
 
-// Tenants and landlords are separate collections with separate tokens, so shared flows
-// (messaging, rentals) accept either session and reduce it to { id, role }.
-function requireParticipant(req, res, next) {
-    try {
-        const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+// Every guard below is this one lookup plus an assertion about who the session belongs to.
+// A database failure is left to throw: Express turns it into a 500, which is honest, where
+// swallowing it into a 401 would sign people out over a blip.
+async function loadSession(req) {
+    const token = readToken(req);
 
-        if (payload.userId) {
-            req.participant = { id: payload.userId, role: 'user' };
-            return next();
-        }
+    if (!token) return null;
 
-        if (payload.landlordId) {
-            req.participant = { id: payload.landlordId, role: 'landlord' };
-            return next();
-        }
+    const session = await Session.resolve(token);
 
-        throw new Error('Invalid session');
-    } catch (error) {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid or expired session',
-            data: {},
-        });
+    if (session) req.sessionToken = token;
+
+    return session;
+}
+
+async function requireAuth(req, res, next) {
+    const session = await loadSession(req);
+
+    if (session?.ownerType !== 'user') {
+        return unauthorized(res);
     }
+
+    req.userId = String(session.owner);
+    return next();
+}
+
+async function requireLandlordAuth(req, res, next) {
+    const session = await loadSession(req);
+
+    if (session?.ownerType !== 'landlord') {
+        return unauthorized(res, 'Please log in as a landlord to continue');
+    }
+
+    req.landlordId = String(session.owner);
+    return next();
+}
+
+// Tenants and landlords are separate collections, so shared flows (messaging, rentals) accept
+// either session and reduce it to { id, role }.
+async function requireParticipant(req, res, next) {
+    const session = await loadSession(req);
+
+    if (!session) {
+        return unauthorized(res);
+    }
+
+    req.participant = { id: String(session.owner), role: session.ownerType };
+    return next();
 }
 
 function requireRole(role, message) {
@@ -84,4 +72,19 @@ function requireRole(role, message) {
     };
 }
 
-module.exports = { requireAuth, requireParticipant, requireRole, getCookieOptions };
+// An account can disappear under a live session (a database reset, a deleted profile). Drop the
+// row so the token stops working, and tell the client to clear its local role state.
+async function endSession(req, res, message) {
+    if (req.sessionToken) await Session.revoke(req.sessionToken);
+
+    return res.status(401).json({ success: false, message, data: {} });
+}
+
+module.exports = {
+    readToken,
+    requireAuth,
+    requireLandlordAuth,
+    requireParticipant,
+    requireRole,
+    endSession,
+};

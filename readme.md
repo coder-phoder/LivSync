@@ -70,7 +70,7 @@ The initial MVP concentrates on the highest-value path: search for a listing, in
 | Client utilities | Axios, React Router, Framer Motion, Lucide React |
 | Backend | Node.js, Express.js |
 | Database | MongoDB with Mongoose |
-| Authentication | JSON Web Tokens, bcrypt, HTTP-only cookies |
+| Authentication | Server-side sessions, bcrypt, bearer tokens |
 | Real-time messaging | Socket.IO |
 | Input validation | express-validator |
 | Development tooling | Nodemon, ESLint |
@@ -85,7 +85,7 @@ flowchart LR
     S --- A
     A -->|Mongoose| D[(MongoDB)]
     A -->|Optional future integrations| X[AI, maps, e-signature, storage]
-    A -->|HTTP-only JWT cookie| U
+    A -->|Session bearer token| U
 ```
 
 1. The React client provides search, listing, profile, matching, and dashboard experiences.
@@ -117,7 +117,7 @@ Every API response should use this structure:
 | Method | Endpoint | Description | Authentication |
 | --- | --- | --- | --- |
 | `POST` | `/auth/register` | Register a tenant or landlord account. | No |
-| `POST` | `/auth/login` | Authenticate and set an HTTP-only JWT cookie. | No |
+| `POST` | `/auth/login` | Authenticate and return a session token. | No |
 | `POST` | `/auth/logout` | End the current session. | Yes |
 | `GET` | `/auth/me` | Get the signed-in user and profile summary. | Yes |
 | `GET` | `/listings` | Search and filter listings. | No |
@@ -227,7 +227,7 @@ erDiagram
 ## Security and privacy principles
 
 - Store passwords only as bcrypt hashes; never return password fields in an API response.
-- Store JWTs in secure, HTTP-only cookies and protect restricted routes with authentication and role middleware.
+- Store only a hash of each session token, expire sessions server-side, and protect restricted routes with authentication and role middleware.
 - Restrict listing edits, conversations, documents, reviews, and maintenance requests to authorised owners or participants.
 - Validate and sanitise all request data; rate-limit sensitive authentication and message routes when they are introduced.
 - Keep uploaded documents private, encrypted where possible, and accessible only through time-limited, authorised URLs.
@@ -268,11 +268,12 @@ Create `backend/.env` with the following values:
 ```env
 PORT=4000
 DB_CONNECT=mongodb://127.0.0.1:27017/livsync
-JWT_SECRET=replace-with-a-long-random-secret
 CLIENT_URL=http://localhost:5173
 ```
 
-`PORT` and `DB_CONNECT` are used by the current backend. `JWT_SECRET` and `CLIENT_URL` will be used when authentication and credentialed CORS are implemented.
+`PORT` and `DB_CONNECT` are used by the current backend, and `CLIENT_URL` is the origin CORS allows.
+Sessions need no secret: logging in stores a random token in the `sessions` collection and the
+browser sends it back in an `Authorization: Bearer` header.
 
 Never commit real credentials. Commit an `.env.example` file containing placeholders instead.
 

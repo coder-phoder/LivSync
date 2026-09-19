@@ -1,23 +1,10 @@
-const jwt = require('jsonwebtoken');
 const Landlord = require('../models/landlord.model');
-const { getCookieOptions } = require('../middlewares/auth.middleware');
+const Session = require('../models/session.model');
+const { endSession } = require('../middlewares/auth.middleware');
 const { issueOtpQuietly } = require('./verification.controller');
 
-const COOKIE_NAME = 'token';
-const TOKEN_DURATION = '7d';
-
-function createToken(landlordId) {
-    return jwt.sign({ landlordId }, process.env.JWT_SECRET, { expiresIn: TOKEN_DURATION });
-}
-
-// A JWT can outlive a database reset. Treat a token whose account has disappeared as an
-// invalid session so the client clears its local role state and returns to login.
-function invalidateLandlordSession(res) {
-    return res.clearCookie(COOKIE_NAME, getCookieOptions(false)).status(401).json({
-        success: false,
-        message: 'Your landlord session is no longer valid. Please log in again.',
-        data: {},
-    });
+function invalidateLandlordSession(req, res) {
+    return endSession(req, res, 'Your landlord session is no longer valid. Please log in again.');
 }
 
 function serializeLandlord(landlord) {
@@ -75,14 +62,14 @@ async function registerLandlord(req, res) {
             propertyTypes,
             profileDescription,
         });
-        const token = createToken(landlord.id);
+        const token = await Session.issue(landlord.id, 'landlord');
 
         issueOtpQuietly(landlord, 'landlord');
 
-        return res.status(201).cookie(COOKIE_NAME, token, getCookieOptions()).json({
+        return res.status(201).json({
             success: true,
             message: 'Landlord registered successfully',
-            data: { landlord: serializeLandlord(landlord) },
+            data: { token, landlord: serializeLandlord(landlord) },
         });
     } catch (error) {
         if (error.code === 11000) {
@@ -118,12 +105,12 @@ async function loginLandlord(req, res) {
             });
         }
 
-        const token = createToken(landlord.id);
+        const token = await Session.issue(landlord.id, 'landlord');
 
-        return res.cookie(COOKIE_NAME, token, getCookieOptions()).json({
+        return res.json({
             success: true,
             message: 'Landlord login successful',
-            data: { landlord: serializeLandlord(landlord) },
+            data: { token, landlord: serializeLandlord(landlord) },
         });
     } catch (error) {
         return res.status(500).json({
@@ -136,7 +123,9 @@ async function loginLandlord(req, res) {
 
 async function logoutLandlord(req, res) {
     try {
-        return res.clearCookie(COOKIE_NAME, getCookieOptions(false)).json({
+        await Session.revoke(req.sessionToken);
+
+        return res.json({
             success: true,
             message: 'Landlord logout successful',
             data: {},
@@ -155,7 +144,7 @@ async function getLandlordProfile(req, res) {
         const landlord = await Landlord.findById(req.landlordId);
 
         if (!landlord) {
-            return invalidateLandlordSession(res);
+            return invalidateLandlordSession(req, res);
         }
 
         res.set('Cache-Control', 'private, no-store');
@@ -182,7 +171,7 @@ async function saveLandlordSignature(req, res) {
         );
 
         if (!landlord) {
-            return invalidateLandlordSession(res);
+            return invalidateLandlordSession(req, res);
         }
 
         return res.json({
