@@ -22,6 +22,9 @@ const PORT = process.env.PORT || 4000;
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true,
+    // PDFs and documents are fetched, not linked to, so the browser has to be allowed to read the
+    // filename the server picked out of the response.
+    exposedHeaders: ['Content-Disposition'],
 }));
 // The raw body is kept so the Razorpay webhook signature can be checked against exactly what was sent.
 app.use(express.json({ verify: (req, res, buffer) => { req.rawBody = buffer; } }));

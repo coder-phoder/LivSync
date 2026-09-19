@@ -6,6 +6,7 @@ import ApplicationTracker from '../../Components/Rentals/ApplicationTracker'
 import RequiredDocumentsPicker from '../../Components/Rentals/RequiredDocumentsPicker'
 import UserNavbar from '../../Components/User/UserNavbar'
 import { useAuth } from '../../Context/AuthContext'
+import { downloadFile, openFile } from '../../download'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const CHECKOUT_SRC = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -127,7 +128,7 @@ function TenantDocumentEditor({ rental, tenantDocuments, isBusy, onSave }) {
   )
 }
 
-function SharedDocuments({ rental, isLandlord, isBusy, onSave }) {
+function SharedDocuments({ rental, isLandlord, isBusy, onSave, onDownload }) {
   if (!rental.documentRequirements?.length) return null
 
   if (!isLandlord) {
@@ -178,9 +179,9 @@ function SharedDocuments({ rental, isLandlord, isBusy, onSave }) {
                 <li key={requirement.requirementId} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span className="text-slate-600">{requirement.name}</span>
                   {requirement.document ? (
-                    <a href={`${BASE_URL}/tenant-documents/${requirement.document.id}/download`} target="_blank" rel="noreferrer" className="font-medium text-slate-900 underline hover:text-slate-600">
+                    <button type="button" onClick={() => onDownload(`/tenant-documents/${requirement.document.id}/download`, requirement.document.label)} className="font-medium text-slate-900 underline hover:text-slate-600">
                       {requirement.document.label}
-                    </a>
+                    </button>
                   ) : <span className="text-xs font-medium text-amber-700">Not shared</span>}
                 </li>
               ))}
@@ -241,6 +242,22 @@ function RentalsPage() {
   }, [handleError, refreshToken])
 
   const refresh = () => setRefreshToken((token) => token + 1)
+
+  // These files sit behind the session, so they are fetched rather than linked to; a plain link
+  // would reach the API with no Authorization header on it. Agreements and receipts open in their
+  // own tab the way they always did; a shared document is an attachment, so it is saved.
+  const fetchDocument = (open) => async (path, filename) => {
+    setError('')
+
+    try {
+      await (open ? openFile : downloadFile)(`${BASE_URL}${path}`, filename)
+    } catch (requestError) {
+      handleError(requestError, 'Unable to open the document')
+    }
+  }
+
+  const openDocument = fetchDocument(true)
+  const download = fetchDocument(false)
 
   // Every action is a POST/PATCH followed by a reload, so the list always shows server truth.
   const runAction = async (rentalId, request, fallback) => {
@@ -402,6 +419,7 @@ function RentalsPage() {
                   isLandlord={isLandlord}
                   isBusy={isBusy}
                   onSave={(documents) => saveDocuments(rental, documents)}
+                  onDownload={download}
                 />
 
                 {rental.terms && (
@@ -462,24 +480,24 @@ function RentalsPage() {
 
                   {rental.documents.agreement && (
                     <>
-                      <a href={`${BASE_URL}/rentals/${rental.id}/agreement`} target="_blank" rel="noreferrer" className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                      <button type="button" onClick={() => openDocument(`/rentals/${rental.id}/agreement`, `livsync-agreement-${rental.id}.pdf`)} className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
                         {rental.isBuddyRequest ? 'Joint agreement (PDF)' : 'Rental agreement (PDF)'}
-                      </a>
+                      </button>
                       {!isLandlord && rental.isBuddyRequest && (
-                        <a href={`${BASE_URL}/rentals/${rental.id}/agreement?scope=individual`} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Your copy (PDF)</a>
+                        <button type="button" onClick={() => openDocument(`/rentals/${rental.id}/agreement?scope=individual`, `livsync-agreement-${rental.id}.pdf`)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Your copy (PDF)</button>
                       )}
                       <span className="text-xs text-slate-500">Agreement {rental.agreement?.number}</span>
                     </>
                   )}
 
                   {!isLandlord && rental.documents.receipt && (
-                    <a href={`${BASE_URL}/rentals/${rental.id}/receipt`} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Payment receipt (PDF)</a>
+                    <button type="button" onClick={() => openDocument(`/rentals/${rental.id}/receipt`, `livsync-receipt-${rental.id}.pdf`)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Payment receipt (PDF)</button>
                   )}
 
                   {isLandlord && rental.tenants.filter((tenant) => tenant.payment?.paid && tenant.payment.mode === 'online').map((tenant) => (
-                    <a key={tenant.id} href={`${BASE_URL}/rentals/${rental.id}/receipt?payerId=${tenant.id}`} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <button key={tenant.id} type="button" onClick={() => openDocument(`/rentals/${rental.id}/receipt?payerId=${tenant.id}`, `livsync-receipt-${tenant.id}.pdf`)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                       Receipt · {tenant.name}
-                    </a>
+                    </button>
                   ))}
                 </div>
               </article>

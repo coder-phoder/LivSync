@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { downloadFile } from '../../download'
 import { useEffect, useState } from 'react'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
@@ -45,6 +46,17 @@ function DocumentVault() {
       isCurrent = false
     }
   }, [])
+
+  // A link cannot carry the session token, so the file is fetched and handed to the browser.
+  const download = async (document) => {
+    setError('')
+
+    try {
+      await downloadFile(`${BASE_URL}/tenant-documents/${document.id}/download`, document.originalName)
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to download the document')
+    }
+  }
 
   const uploadDocument = async (event) => {
     event.preventDefault()
@@ -136,7 +148,7 @@ function DocumentVault() {
                 <p className="mt-0.5 text-xs text-slate-500">{document.originalName} · {formatSize(document.size)}{document.expiresAt ? ` · expires ${formatDate(document.expiresAt)}` : ''}</p>
               </div>
               <div className="flex items-center gap-3">
-                <a href={`${BASE_URL}/tenant-documents/${document.id}/download`} className="text-sm font-medium text-slate-700 underline hover:text-slate-950">Download</a>
+                <button type="button" onClick={() => download(document)} className="text-sm font-medium text-slate-700 underline hover:text-slate-950">Download</button>
                 <button type="button" onClick={() => deleteDocument(document)} disabled={deletingId === document.id} className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-60">{deletingId === document.id ? 'Deleting…' : 'Delete'}</button>
               </div>
             </li>
