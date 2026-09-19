@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { useAuth } from './Context/AuthContext'
+import { loginPathFor, useAuth } from './Context/AuthContext'
 import BuddyPage from './Pages/Buddy/BuddyPage'
 import CallsPage from './Pages/Calls/CallsPage'
 import LandingPage from './Pages/Common/LandingPage'
@@ -22,9 +22,13 @@ import SavedListingsPage from './Pages/User/SavedListingsPage'
 const CallRoomPage = lazy(() => import('./Pages/Calls/CallRoomPage'))
 
 function RoleRoute({ role, children }) {
-  const { role: currentRole } = useAuth()
+  const { role: currentRole, isSessionReady } = useAuth()
 
-  return [].concat(role).includes(currentRole) ? children : <Navigate to="/login" replace />
+  if (!isSessionReady) {
+    return <div className="grid min-h-screen place-items-center bg-forest text-sm text-paper/75">Restoring your session…</div>
+  }
+
+  return [].concat(role).includes(currentRole) ? children : <Navigate to={loginPathFor(Array.isArray(role) ? null : role)} replace />
 }
 
 function App() {

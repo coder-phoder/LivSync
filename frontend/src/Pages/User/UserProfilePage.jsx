@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import UserNavbar from '../../Components/User/UserNavbar'
 import DocumentVault from '../../Components/User/DocumentVault'
-import { useAuth } from '../../Context/AuthContext'
+import { loginPathFor, useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -81,7 +81,7 @@ function UserProfilePage() {
 
         if (requestError.response?.status === 401) {
           clearSession()
-          navigate('/login', { replace: true })
+          navigate(loginPathFor('user'), { replace: true })
           return
         }
 

@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const Landlord = require('../models/landlord.model');
-const { getCookieOptions } = require('../middlewares/auth.middleware');
+const { AUTH_COOKIE_NAME, getCookieOptions } = require('../middlewares/auth.middleware');
 const { issueOtpQuietly } = require('./verification.controller');
 
-const COOKIE_NAME = 'token';
+const COOKIE_NAME = AUTH_COOKIE_NAME;
 const TOKEN_DURATION = '7d';
 
 function createToken(landlordId) {

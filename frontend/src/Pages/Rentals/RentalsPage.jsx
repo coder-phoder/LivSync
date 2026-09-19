@@ -5,7 +5,7 @@ import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import ApplicationTracker from '../../Components/Rentals/ApplicationTracker'
 import RequiredDocumentsPicker from '../../Components/Rentals/RequiredDocumentsPicker'
 import UserNavbar from '../../Components/User/UserNavbar'
-import { useAuth } from '../../Context/AuthContext'
+import { loginPathFor, useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const CHECKOUT_SRC = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -207,12 +207,12 @@ function RentalsPage() {
   const handleError = useCallback((requestError, fallback) => {
     if (requestError?.response?.status === 401) {
       clearSession()
-      navigate('/login', { replace: true })
+      navigate(loginPathFor(role), { replace: true })
       return
     }
 
     setError(requestError?.response?.data?.message || requestError?.message || fallback)
-  }, [clearSession, navigate])
+  }, [clearSession, navigate, role])
 
   useEffect(() => {
     let isCurrent = true

@@ -61,8 +61,8 @@ export function PasswordField({ hint, ...props }) {
 }
 
 const ROLES = [
-  { value: 'user', title: 'Renting a place', copy: 'Search listings, match with roommates, apply and sign.', short: 'Renting' },
-  { value: 'landlord', title: 'Listing a property', copy: 'Publish the full cost, screen applicants, issue agreements.', short: 'Listing' },
+  { value: 'user', title: 'Renting a place', copy: 'Search listings, match with roommates, apply and sign.', short: 'Tenant' },
+  { value: 'landlord', title: 'Listing a property', copy: 'Publish the full cost, screen applicants, issue agreements.', short: 'Landlord' },
 ]
 
 // The account type decides the endpoint, so it is a real fork in the flow — not a settings toggle.

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LandlordNavbar from '../../Components/Landlord/LandlordNavbar'
 import SignaturePad from '../../Components/Landlord/SignaturePad'
-import { useAuth } from '../../Context/AuthContext'
+import { loginPathFor, useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -31,7 +31,7 @@ function LandlordSignaturePage() {
 
         if (requestError.response?.status === 401) {
           clearSession()
-          navigate('/login', { replace: true })
+          navigate(loginPathFor('landlord'), { replace: true })
           return
         }
 

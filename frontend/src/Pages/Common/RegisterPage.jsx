@@ -1,12 +1,10 @@
-import axios from 'axios'
 import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { AccountSwitch, AuthHeader, ErrorNote, Field, LABEL, PasswordField, Select, SubmitButton, Textarea } from '../../Components/Auth/AuthKit'
 import ProfileCard from '../../Components/Auth/ProfileCard'
 import { useAuth } from '../../Context/AuthContext'
-
-const BASE_URL = import.meta.env.VITE_BASE_URL
+import { api, requestErrorMessage } from '../../apiClient'
 const PROPERTY_TYPES = ['apartment', 'house', 'room', 'commercial']
 
 function RegisterPage() {
@@ -78,7 +76,7 @@ function RegisterPage() {
         }
 
     try {
-      const response = await axios.post(`${BASE_URL}${endpoint}`, payload, { withCredentials: true })
+      const response = await api.post(endpoint, payload)
       const account = isLandlordAccount ? response.data?.data?.landlord : response.data?.data?.user
 
       if (!response.data?.success || !account) {
@@ -93,7 +91,7 @@ function RegisterPage() {
       // The code is already in their inbox, so the verification step comes before anything else.
       navigate('/verify-email', { replace: true })
     } catch (requestError) {
-      setError(requestError.response?.data?.message || requestError.message || 'Unable to create your account')
+      setError(requestErrorMessage(requestError, 'Unable to create your account'))
     } finally {
       setIsSubmitting(false)
     }

@@ -1,17 +1,36 @@
 const jwt = require('jsonwebtoken');
 
+const AUTH_COOKIE_NAME = 'livsync_session';
 const COOKIE_DURATION = 7 * 24 * 60 * 60 * 1000;
-// Safari blocks third-party cookies outright, so the API has to reach the browser through the
-// site's own domain (a Render rewrite of /api/* onto this service) rather than a sibling
-// onrender.com subdomain. That makes the session cookie first-party, which Lax covers and every
-// browser accepts. Keyed off CLIENT_URL because Render sets no NODE_ENV.
-const isDeployed = (process.env.CLIENT_URL || '').startsWith('https://');
+
+function usesSecureCookies() {
+    // Render's NODE_ENV is not guaranteed, while CLIENT_URL is required for credentialed CORS.
+    // Either signal means the browser reaches the application over HTTPS.
+    return process.env.NODE_ENV === 'production' || (process.env.CLIENT_URL || '').startsWith('https://');
+}
+
+function getSameSitePolicy(secure) {
+    const configuredPolicy = (process.env.COOKIE_SAME_SITE || '').trim().toLowerCase();
+
+    if (['lax', 'strict', 'none'].includes(configuredPolicy)) {
+        // Browsers reject SameSite=None without Secure. Keep local development usable even if
+        // a production-only variable was copied into a local .env file.
+        return configuredPolicy === 'none' && !secure ? 'lax' : configuredPolicy;
+    }
+
+    // The current public Render hostnames are cross-site, so their direct API fallback needs
+    // None. A custom frontend/API pair under one registrable domain should explicitly use Lax
+    // (COOKIE_SAME_SITE=lax), which is accepted by all major browsers.
+    return secure ? 'none' : 'lax';
+}
 
 function getCookieOptions(includeMaxAge = true) {
+    const secure = usesSecureCookies();
     const options = {
         httpOnly: true,
-        secure: isDeployed,
-        sameSite: 'lax',
+        secure,
+        sameSite: getSameSitePolicy(secure),
+        path: '/',
     };
 
     if (includeMaxAge) options.maxAge = COOKIE_DURATION;
@@ -21,7 +40,7 @@ function getCookieOptions(includeMaxAge = true) {
 
 function requireAuth(req, res, next) {
     try {
-        const token = req.cookies.token;
+        const token = req.cookies[AUTH_COOKIE_NAME];
 
         if (!token) {
             return res.status(401).json({
@@ -52,7 +71,7 @@ function requireAuth(req, res, next) {
 // (messaging, rentals) accept either session and reduce it to { id, role }.
 function requireParticipant(req, res, next) {
     try {
-        const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+        const payload = jwt.verify(req.cookies[AUTH_COOKIE_NAME], process.env.JWT_SECRET);
 
         if (payload.userId) {
             req.participant = { id: payload.userId, role: 'user' };
@@ -84,4 +103,10 @@ function requireRole(role, message) {
     };
 }
 
-module.exports = { requireAuth, requireParticipant, requireRole, getCookieOptions };
+module.exports = {
+    AUTH_COOKIE_NAME,
+    requireAuth,
+    requireParticipant,
+    requireRole,
+    getCookieOptions,
+};

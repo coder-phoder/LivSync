@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import BuddyCard from '../../Components/Buddy/BuddyCard'
 import MessageThread from '../../Components/Messages/MessageThread'
 import UserNavbar from '../../Components/User/UserNavbar'
-import { useAuth } from '../../Context/AuthContext'
+import { loginPathFor, useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const REFRESH_INTERVAL = 5 * 60 * 1000
@@ -36,7 +36,7 @@ function BuddyPage() {
 
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate('/login', { replace: true })
+      navigate(loginPathFor('user'), { replace: true })
       return
     }
 

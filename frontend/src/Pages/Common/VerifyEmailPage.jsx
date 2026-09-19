@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../Components/Common/Navbar'
-import { useAuth } from '../../Context/AuthContext'
+import { loginPathFor, useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
@@ -26,12 +26,12 @@ function VerifyEmailPage() {
   const failWith = useCallback((requestError, fallback) => {
     if (requestError.response?.status === 401) {
       clearSession()
-      navigate('/login', { replace: true })
+      navigate(loginPathFor(isLandlord ? 'landlord' : 'user'), { replace: true })
       return
     }
 
     setError(requestError.response?.data?.message || requestError.message || fallback)
-  }, [clearSession, navigate])
+  }, [clearSession, isLandlord, navigate])
 
   const requestCode = useCallback(async (isAutomatic) => {
     setError('')

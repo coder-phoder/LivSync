@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const { AUTH_COOKIE_NAME } = require('./auth.middleware');
 
 const PROPERTY_TYPES = ['apartment', 'house', 'room', 'commercial'];
 
@@ -73,7 +74,7 @@ function handleValidationErrors(req, res, next) {
 
 function requireLandlordAuth(req, res, next) {
     try {
-        const token = req.cookies.token;
+        const token = req.cookies[AUTH_COOKIE_NAME];
         const payload = jwt.verify(token, process.env.JWT_SECRET);
 
         if (!payload.landlordId) {

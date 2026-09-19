@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import UserNavbar from '../../Components/User/UserNavbar'
 import { buildSignals, since } from '../../Components/User/homeSignals'
-import { useAuth } from '../../Context/AuthContext'
+import { loginPathFor, useAuth } from '../../Context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 const SHELL = 'mx-auto w-full max-w-[1240px] px-5 sm:px-10 lg:px-16'
@@ -66,7 +66,7 @@ function UserHomePage() {
 
         if (requestError.response?.status === 401) {
           clearSession()
-          navigate('/login', { replace: true })
+          navigate(loginPathFor('user'), { replace: true })
           return
         }
 
